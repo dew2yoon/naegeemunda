@@ -3,22 +3,31 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --bg:             #f8f7f4;
+  --surface:        #ffffff;
+  --surface-2:      #f2f1ee;
+  --border:         #e8e5e0;
+  --text-primary:   #1a1816;
+  --text-secondary: #6b6560;
+  --text-muted:     #a09890;
+  --accent:         #4a6fa5;
+  --accent-light:   #eef2f8;
+  --accent-hover:   #3a5f95;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-noto-sans-kr), 'Noto Sans KR', sans-serif;
 }
+
+/* 각 폰트 패밀리가 컴포넌트 style prop에서 사용할 수 있도록 font-face 별칭 */
+.font-noto-sans-kr    { font-family: var(--font-noto-sans-kr), sans-serif; }
+.font-noto-serif-kr   { font-family: var(--font-noto-serif-kr), serif; }
+.font-nanum-gothic    { font-family: var(--font-nanum-gothic), sans-serif; }
+.font-nanum-myeongjo  { font-family: var(--font-nanum-myeongjo), serif; }
+.font-gowun-dodum     { font-family: var(--font-gowun-dodum), sans-serif; }
+.font-gowun-batang    { font-family: var(--font-gowun-batang), serif; }
 
 @layer utilities {
   .text-balance {
