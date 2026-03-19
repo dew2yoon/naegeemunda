@@ -7,6 +7,7 @@ import {
   Gowun_Dodum,
   Gowun_Batang,
 } from 'next/font/google'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import './globals.css'
 
 const notoSansKR = Noto_Sans_KR({ subsets: ['latin'], weight: ['300', '400', '500'], variable: '--font-noto-sans-kr', display: 'swap' })
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     ].join(' ')}>
       <body className="antialiased">
         {children}
+        <GoogleAnalytics gaId="G-P89SW13C4W" />
       </body>
     </html>
   )
