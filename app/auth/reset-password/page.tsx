@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
             className="text-[28px] font-bold text-[#1a1816] mb-2"
             style={{ fontFamily: NANUM_MYEONGJO }}
           >
-            나에게.묻다
+            memymemo
           </h1>
         </div>
 

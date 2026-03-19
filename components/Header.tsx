@@ -33,7 +33,7 @@ export default function Header({ userEmail }: HeaderProps) {
             className="text-[22px] font-bold text-[#1a1816]"
             style={{ fontFamily: NANUM_MYEONGJO }}
           >
-            나에게.묻다
+            memymemo
           </h1>
           <span className="text-[13px] text-[#a09890] hidden sm:block">{today}</span>
         </div>

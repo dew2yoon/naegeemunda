@@ -81,13 +81,13 @@ export function exportSingleEntryHtml(entry: Entry): void {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>나에게.묻다 — ${dateStr}</title>
+  <title>memymemo — ${dateStr}</title>
   <link href="${GOOGLE_FONTS_URL}" rel="stylesheet" />
   <style>${HTML_STYLE}</style>
 </head>
 <body>
   <div class="container">
-    <h1>나에게.묻다</h1>
+    <h1>memymemo</h1>
     <div class="card">
       <div class="badge">${entry.category}</div>
       <div class="date">${formatDate(entry.created_at)}</div>
@@ -99,7 +99,7 @@ export function exportSingleEntryHtml(entry: Entry): void {
 </body>
 </html>`
 
-  downloadHtml(html, `나에게묻다_${dateStr}.html`)
+  downloadHtml(html, `memymemo_${dateStr}.html`)
 }
 
 export function exportAllEntriesHtml(entries: Entry[]): void {
@@ -126,19 +126,19 @@ export function exportAllEntriesHtml(entries: Entry[]): void {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>나에게.묻다 — 전체 기록</title>
+  <title>memymemo — 전체 기록</title>
   <link href="${GOOGLE_FONTS_URL}" rel="stylesheet" />
   <style>${HTML_STYLE}</style>
 </head>
 <body>
   <div class="container">
-    <h1>나에게.묻다 — 전체 기록 (${entries.length}개)</h1>
+    <h1>memymemo — 전체 기록 (${entries.length}개)</h1>
     ${cardsHtml}
   </div>
 </body>
 </html>`
 
-  downloadHtml(html, `나에게묻다_전체기록_${dateStr}.html`)
+  downloadHtml(html, `memymemo_전체기록_${dateStr}.html`)
 }
 
 export function exportInterviewSessionHtml(session: InterviewSession): void {
@@ -196,14 +196,14 @@ export function exportInterviewSessionHtml(session: InterviewSession): void {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>나에게.묻다 인터뷰 — ${session.keyword}</title>
+  <title>memymemo 인터뷰 — ${session.keyword}</title>
   <link href="${GOOGLE_FONTS_URL}" rel="stylesheet" />
   <style>${HTML_STYLE}${interviewStyle}</style>
 </head>
 <body>
   <div class="container">
     <div class="interview-header">
-      <div class="interview-title">🎙 나에게.묻다</div>
+      <div class="interview-title">🎙 memymemo</div>
       <div class="interview-keyword">${session.keyword} 인터뷰</div>
       <div class="interview-date">${dateKo}</div>
     </div>
@@ -213,7 +213,7 @@ export function exportInterviewSessionHtml(session: InterviewSession): void {
 </body>
 </html>`
 
-  downloadHtml(html, `나에게묻다_인터뷰_${keywordSlug}_${dateStr}.html`)
+  downloadHtml(html, `memymemo_인터뷰_${keywordSlug}_${dateStr}.html`)
 }
 
 function downloadHtml(html: string, filename: string): void {

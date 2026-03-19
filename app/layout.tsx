@@ -17,7 +17,7 @@ const gowunDodum = Gowun_Dodum({ subsets: ['latin'], weight: ['400'], variable: 
 const gowunBatang = Gowun_Batang({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-gowun-batang', display: 'swap' })
 
 export const metadata: Metadata = {
-  title: '나에게.묻다',
+  title: 'memymemo',
   description: '나 자신을 인터뷰하는 일기 & 커리어 노트 앱',
 }
 

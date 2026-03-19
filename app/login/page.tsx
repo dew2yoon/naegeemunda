@@ -69,7 +69,7 @@ export default function LoginPage() {
             className="text-[28px] font-bold text-[#1a1816] mb-2"
             style={{ fontFamily: NANUM_MYEONGJO }}
           >
-            나에게.묻다
+            memymemo
           </h1>
           <p className="text-[14px] text-[#6b6560]">나 자신을 인터뷰하는 일기 앱</p>
         </div>
