@@ -44,3 +44,30 @@ CREATE POLICY "Users can CRUD own interview_sessions"
   USING (auth.uid() = user_id);
 
 CREATE INDEX interview_sessions_user_created ON interview_sessions(user_id, created_at DESC);
+
+-- ─────────────────────────────────────────────────────────────────
+-- Storage: entry-photos 버킷 RLS 정책
+-- Supabase 대시보드 > Storage > entry-photos 버킷이 이미 생성된 상태에서 실행
+-- ─────────────────────────────────────────────────────────────────
+
+-- 인증된 사용자는 자신의 폴더에만 업로드 가능
+CREATE POLICY "Authenticated users can upload own photos"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'entry-photos'
+    AND auth.role() = 'authenticated'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- 인증된 사용자는 자신의 파일만 삭제 가능
+CREATE POLICY "Authenticated users can delete own photos"
+  ON storage.objects FOR DELETE
+  USING (
+    bucket_id = 'entry-photos'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- 공개 읽기 (버킷이 public 설정이면 이 정책 없어도 됨 — 안전망으로 추가)
+CREATE POLICY "Public read entry photos"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'entry-photos');

@@ -219,7 +219,7 @@ export default function EditorPanel({
         <span className="text-[12px] text-[#9585c2]">Cmd + Enter로 저장</span>
         <button
           onClick={onSave}
-          disabled={isSaving || !answer.trim()}
+          disabled={isSaving || !answer}
           aria-label="저장하기"
           className="px-5 py-2.5 bg-[#7c3aed] text-white text-[14px] font-medium rounded-xl hover:bg-[#6d28d9] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >

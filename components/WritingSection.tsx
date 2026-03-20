@@ -51,7 +51,7 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
   }, [])
 
   const handleSave = useCallback(async () => {
-    if (!answer.trim()) return
+    if (!answer) return
     setIsSaving(true)
 
     const supabase = createClient()
@@ -63,7 +63,7 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
         user_id: userId,
         category,
         question,
-        answer: answer.trim(),
+        answer,
         font_family: fontFamily,
         font_size: fontSize,
         photos: [],
@@ -84,30 +84,44 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
         photoFiles.map(async (file, i) => {
           try {
             const compressed = await compressImage(file)
-            const ext = 'jpg'
-            const path = `${userId}/${entry.id}/${Date.now()}_${i}.${ext}`
-            const { error } = await supabase.storage
+            const path = `${userId}/${entry.id}/${Date.now()}_${i}.jpg`
+            const { error: uploadError } = await supabase.storage
               .from('entry-photos')
               .upload(path, compressed, { contentType: 'image/jpeg', upsert: false })
-            if (error) return null
+
+            if (uploadError) {
+              console.error('[사진 업로드 실패]', uploadError)
+              return null
+            }
 
             const { data: urlData } = supabase.storage
               .from('entry-photos')
               .getPublicUrl(path)
             return urlData.publicUrl
-          } catch {
+          } catch (e) {
+            console.error('[사진 처리 오류]', e)
             return null
           }
         })
       )
       photoUrls = uploads.filter((u): u is string => u !== null)
 
+      if (photoUrls.length < photoFiles.length) {
+        onToast(
+          photoUrls.length === 0
+            ? '사진 업로드에 실패했습니다. Supabase Storage 정책을 확인해주세요.'
+            : `${photoFiles.length}장 중 ${photoUrls.length}장만 업로드되었습니다.`,
+          'error'
+        )
+      }
+
       // 3. photos URL로 entry 업데이트
       if (photoUrls.length > 0) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('entries')
           .update({ photos: photoUrls })
           .eq('id', entry.id)
+        if (updateError) console.error('[photos 업데이트 실패]', updateError)
       }
     }
 
