@@ -86,7 +86,7 @@ export default function MainClient({ user, initialEntries, initialInterviewSessi
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4]">
+    <div className="min-h-screen bg-[#f5f3ff]">
       <Header userEmail={user.email} />
 
       <main className="max-w-[1100px] mx-auto px-4 py-8 flex flex-col gap-8">

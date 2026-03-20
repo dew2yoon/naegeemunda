@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --bg:             #f8f7f4;
+  --bg:             #f5f3ff;
   --surface:        #ffffff;
-  --surface-2:      #f2f1ee;
-  --border:         #e8e5e0;
-  --text-primary:   #1a1816;
-  --text-secondary: #6b6560;
-  --text-muted:     #a09890;
-  --accent:         #4a6fa5;
-  --accent-light:   #eef2f8;
-  --accent-hover:   #3a5f95;
+  --surface-2:      #ede9ff;
+  --border:         #ddd6f9;
+  --text-primary:   #1e1b2e;
+  --text-secondary: #5b4f85;
+  --text-muted:     #9585c2;
+  --accent:         #7c3aed;
+  --accent-light:   #ede9ff;
+  --accent-hover:   #6d28d9;
 }
 
 body {
@@ -38,7 +38,7 @@ body {
 /* Tiptap placeholder */
 .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: #a09890;
+  color: #9585c2;
   pointer-events: none;
   float: left;
   height: 0;

@@ -49,8 +49,8 @@ export default function QuestionPanel({
             aria-label={`${cat} 카테고리 선택`}
             className={`text-[13px] px-3 py-1.5 rounded-full transition-colors
               ${cat === category
-                ? 'bg-[#4a6fa5] text-white'
-                : 'bg-[#f2f1ee] text-[#6b6560] hover:bg-[#e8e5e0]'
+                ? 'bg-[#7c3aed] text-white'
+                : 'bg-[#ede9ff] text-[#5b4f85] hover:bg-[#ddd6f9]'
               }`}
           >
             {CATEGORY_ICONS[cat]} {cat}
@@ -59,9 +59,9 @@ export default function QuestionPanel({
       </div>
 
       {/* 질문 카드 */}
-      <div className="bg-white rounded-xl border border-[#e8e5e0] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)] flex-1 flex flex-col justify-between min-h-[200px]">
+      <div className="bg-white rounded-xl border border-[#ddd6f9] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)] flex-1 flex flex-col justify-between min-h-[200px]">
         <p
-          className={`text-[20px] leading-[1.5] text-[#1a1816] transition-opacity duration-200 ${fading ? 'opacity-0' : 'opacity-100'}`}
+          className={`text-[20px] leading-[1.5] text-[#1e1b2e] transition-opacity duration-200 ${fading ? 'opacity-0' : 'opacity-100'}`}
           style={{ fontFamily: NANUM_MYEONGJO }}
         >
           {question}
@@ -69,7 +69,7 @@ export default function QuestionPanel({
         <button
           onClick={handleNewQuestion}
           aria-label="다른 질문 보기"
-          className="mt-6 self-start text-[13px] text-[#4a6fa5] hover:text-[#3a5f95] flex items-center gap-1.5 transition-colors"
+          className="mt-6 self-start text-[13px] text-[#7c3aed] hover:text-[#6d28d9] flex items-center gap-1.5 transition-colors"
         >
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

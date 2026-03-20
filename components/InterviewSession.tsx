@@ -124,11 +124,11 @@ export default function InterviewSession({
   const progress = ((currentIndex + 1) / questions.length) * 100
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#f8f7f4] flex flex-col overflow-y-auto">
+    <div className="fixed inset-0 z-40 bg-[#f5f3ff] flex flex-col overflow-y-auto">
       {/* 헤더 */}
-      <div className="sticky top-0 bg-[#f8f7f4] border-b border-[#e8e5e0] px-6 py-4 flex items-center justify-between">
+      <div className="sticky top-0 bg-[#f5f3ff] border-b border-[#ddd6f9] px-6 py-4 flex items-center justify-between">
         <span
-          className="text-[15px] font-bold text-[#1a1816]"
+          className="text-[15px] font-bold text-[#1e1b2e]"
           style={{ fontFamily: 'var(--font-nanum-myeongjo), serif' }}
         >
           🎙 {keyword} 인터뷰
@@ -136,16 +136,16 @@ export default function InterviewSession({
         <button
           onClick={onAbort}
           aria-label="인터뷰 중단"
-          className="text-[13px] text-[#a09890] hover:text-[#6b6560] transition-colors"
+          className="text-[13px] text-[#9585c2] hover:text-[#5b4f85] transition-colors"
         >
           나중에 계속
         </button>
       </div>
 
       {/* 진행 바 */}
-      <div className="h-1 bg-[#e8e5e0]">
+      <div className="h-1 bg-[#ddd6f9]">
         <div
-          className="h-full bg-[#4a6fa5] transition-all duration-300"
+          className="h-full bg-[#7c3aed] transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -153,13 +153,13 @@ export default function InterviewSession({
       {/* 본문 */}
       <div className="flex-1 max-w-[720px] w-full mx-auto px-4 py-10 flex flex-col gap-6">
         {/* 진행 표시 */}
-        <p className="text-[13px] text-[#a09890] text-center">
+        <p className="text-[13px] text-[#9585c2] text-center">
           Q {currentIndex + 1} / {questions.length}
         </p>
 
         {/* 질문 */}
         <p
-          className="text-[22px] leading-[1.5] text-[#1a1816] text-center"
+          className="text-[22px] leading-[1.5] text-[#1e1b2e] text-center"
           style={{ fontFamily: 'var(--font-nanum-myeongjo), serif' }}
         >
           {questions[currentIndex]}
@@ -171,7 +171,7 @@ export default function InterviewSession({
             value={fontFamily}
             onChange={(e) => setFontFamily(e.target.value as FontFamily)}
             aria-label="폰트 선택"
-            className="text-[13px] border border-[#e8e5e0] rounded-lg px-3 py-1.5 bg-white text-[#6b6560] focus:outline-none focus:border-[#4a6fa5]"
+            className="text-[13px] border border-[#ddd6f9] rounded-lg px-3 py-1.5 bg-white text-[#5b4f85] focus:outline-none focus:border-[#7c3aed]"
           >
             {FONT_FAMILIES.map((f) => (
               <option key={f} value={f}>{f}</option>
@@ -183,7 +183,7 @@ export default function InterviewSession({
               onClick={() => setFontSize(s)}
               aria-label={`글자 크기 ${['작게', '보통', '크게', '매우 크게'][i]}`}
               className={`text-[12px] px-2.5 py-1.5 rounded-lg transition-colors
-                ${s === fontSize ? 'bg-[#4a6fa5] text-white' : 'bg-[#f2f1ee] text-[#6b6560] hover:bg-[#e8e5e0]'}`}
+                ${s === fontSize ? 'bg-[#7c3aed] text-white' : 'bg-[#ede9ff] text-[#5b4f85] hover:bg-[#ddd6f9]'}`}
             >
               {['작게', '보통', '크게', '매우 크게'][i]}
             </button>
@@ -199,14 +199,14 @@ export default function InterviewSession({
             onKeyDown={handleKeyDown}
             placeholder="자유롭게 답변해보세요… (빈 답변도 괜찮아요)"
             aria-label="인터뷰 답변 입력"
-            className="w-full min-h-[180px] bg-white border border-[#e8e5e0] rounded-xl p-5 resize-none focus:outline-none focus:border-[#4a6fa5] text-[#1a1816] placeholder:text-[#a09890] transition-colors shadow-sm"
+            className="w-full min-h-[180px] bg-white border border-[#ddd6f9] rounded-xl p-5 resize-none focus:outline-none focus:border-[#7c3aed] text-[#1e1b2e] placeholder:text-[#9585c2] transition-colors shadow-sm"
             style={{
               fontFamily: FONT_CSS_VAR[fontFamily],
               fontSize,
               lineHeight: '1.8',
             }}
           />
-          <span className="absolute bottom-3 right-4 text-[12px] text-[#a09890]">
+          <span className="absolute bottom-3 right-4 text-[12px] text-[#9585c2]">
             {answers[currentIndex].length}자
           </span>
         </div>
@@ -224,18 +224,18 @@ export default function InterviewSession({
             onClick={handlePrev}
             disabled={currentIndex === 0}
             aria-label="이전 질문"
-            className="flex items-center gap-1.5 text-[13px] text-[#6b6560] hover:text-[#1a1816] disabled:opacity-30 transition-colors"
+            className="flex items-center gap-1.5 text-[13px] text-[#5b4f85] hover:text-[#1e1b2e] disabled:opacity-30 transition-colors"
           >
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             이전 질문
           </button>
-          <span className="text-[12px] text-[#a09890]">Cmd + Enter</span>
+          <span className="text-[12px] text-[#9585c2]">Cmd + Enter</span>
           <button
             onClick={handleNext}
             aria-label={isLast ? '인터뷰 완료' : '다음 질문'}
-            className="flex items-center gap-1.5 px-5 py-2.5 bg-[#4a6fa5] text-white text-[13px] font-medium rounded-xl hover:bg-[#3a5f95] transition-colors"
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-[#7c3aed] text-white text-[13px] font-medium rounded-xl hover:bg-[#6d28d9] transition-colors"
           >
             {isLast ? '인터뷰 완료 ✓' : '다음 질문'}
             {!isLast && (

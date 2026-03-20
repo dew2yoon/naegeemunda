@@ -59,8 +59,8 @@ function ToolbarButton({
       aria-label={title}
       className={`w-7 h-7 flex items-center justify-center rounded text-[13px] transition-colors
         ${active
-          ? 'bg-[#4a6fa5] text-white'
-          : 'text-[#6b6560] hover:bg-[#e8e5e0]'
+          ? 'bg-[#7c3aed] text-white'
+          : 'text-[#5b4f85] hover:bg-[#ddd6f9]'
         }`}
     >
       {children}
@@ -125,7 +125,7 @@ export default function EditorPanel({
           value={fontFamily}
           onChange={(e) => onFontFamilyChange(e.target.value as FontFamily)}
           aria-label="폰트 선택"
-          className="text-[13px] border border-[#e8e5e0] rounded-lg px-3 py-1.5 bg-white text-[#6b6560] focus:outline-none focus:border-[#4a6fa5]"
+          className="text-[13px] border border-[#ddd6f9] rounded-lg px-3 py-1.5 bg-white text-[#5b4f85] focus:outline-none focus:border-[#7c3aed]"
         >
           {FONT_FAMILIES.map((f) => (
             <option key={f} value={f}>{f}</option>
@@ -140,8 +140,8 @@ export default function EditorPanel({
               aria-label={`글자 크기 ${s.label}`}
               className={`text-[12px] px-2.5 py-1.5 rounded-lg transition-colors
                 ${s.value === fontSize
-                  ? 'bg-[#4a6fa5] text-white'
-                  : 'bg-[#f2f1ee] text-[#6b6560] hover:bg-[#e8e5e0]'
+                  ? 'bg-[#7c3aed] text-white'
+                  : 'bg-[#ede9ff] text-[#5b4f85] hover:bg-[#ddd6f9]'
                 }`}
             >
               {s.label}
@@ -152,7 +152,7 @@ export default function EditorPanel({
 
       {/* 서식 도구모음 */}
       {editor && (
-        <div className="flex items-center gap-0.5 flex-wrap border border-[#e8e5e0] rounded-lg px-2 py-1.5 bg-white">
+        <div className="flex items-center gap-0.5 flex-wrap border border-[#ddd6f9] rounded-lg px-2 py-1.5 bg-white">
           <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게 (Cmd+B)">
             <strong>B</strong>
           </ToolbarButton>
@@ -162,7 +162,7 @@ export default function EditorPanel({
           <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="밑줄 (Cmd+U)">
             <span className="underline">U</span>
           </ToolbarButton>
-          <div className="w-px h-4 bg-[#e8e5e0] mx-1" />
+          <div className="w-px h-4 bg-[#ddd6f9] mx-1" />
           <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="글머리 기호">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -173,7 +173,7 @@ export default function EditorPanel({
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
             </svg>
           </ToolbarButton>
-          <div className="w-px h-4 bg-[#e8e5e0] mx-1" />
+          <div className="w-px h-4 bg-[#ddd6f9] mx-1" />
           <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} active={editor.isActive({ textAlign: 'left' })} title="왼쪽 정렬">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M3 12h12M3 18h15" />
@@ -194,7 +194,7 @@ export default function EditorPanel({
 
       {/* 에디터 */}
       <div
-        className="relative bg-[#f2f1ee] border border-[#e8e5e0] rounded-xl p-4 focus-within:border-[#4a6fa5] transition-colors"
+        className="relative bg-[#ede9ff] border border-[#ddd6f9] rounded-xl p-4 focus-within:border-[#7c3aed] transition-colors"
         style={{
           fontFamily: FONT_CSS_VAR[fontFamily],
           fontSize,
@@ -202,7 +202,7 @@ export default function EditorPanel({
         }}
       >
         <EditorContent editor={editor} />
-        <span className="absolute bottom-3 right-4 text-[12px] text-[#a09890] pointer-events-none">
+        <span className="absolute bottom-3 right-4 text-[12px] text-[#9585c2] pointer-events-none">
           {charCount}자
         </span>
       </div>
@@ -216,12 +216,12 @@ export default function EditorPanel({
 
       {/* 저장 버튼 */}
       <div className="flex items-center justify-between">
-        <span className="text-[12px] text-[#a09890]">Cmd + Enter로 저장</span>
+        <span className="text-[12px] text-[#9585c2]">Cmd + Enter로 저장</span>
         <button
           onClick={onSave}
           disabled={isSaving || !answer.trim()}
           aria-label="저장하기"
-          className="px-5 py-2.5 bg-[#4a6fa5] text-white text-[14px] font-medium rounded-xl hover:bg-[#3a5f95] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="px-5 py-2.5 bg-[#7c3aed] text-white text-[14px] font-medium rounded-xl hover:bg-[#6d28d9] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {isSaving ? '저장 중…' : '저장하기'}
         </button>

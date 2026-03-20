@@ -62,19 +62,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#f5f3ff] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1
-            className="text-[28px] font-bold text-[#1a1816] mb-2"
+            className="text-[28px] font-bold text-[#1e1b2e] mb-2"
             style={{ fontFamily: NANUM_MYEONGJO }}
           >
             memymemo
           </h1>
-          <p className="text-[14px] text-[#6b6560]">나 자신을 인터뷰하는 일기 앱</p>
+          <p className="text-[14px] text-[#5b4f85]">나 자신을 인터뷰하는 일기 앱</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-[#e8e5e0] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
+        <div className="bg-white rounded-xl border border-[#ddd6f9] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
 
           {/* 비밀번호 찾기 모드 */}
           {mode === 'reset' ? (
@@ -82,39 +82,39 @@ export default function LoginPage() {
               <div className="mb-6">
                 <button
                   onClick={() => switchMode('login')}
-                  className="flex items-center gap-1 text-[13px] text-[#a09890] hover:text-[#6b6560] transition-colors mb-4"
+                  className="flex items-center gap-1 text-[13px] text-[#9585c2] hover:text-[#5b4f85] transition-colors mb-4"
                 >
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                   로그인으로 돌아가기
                 </button>
-                <h2 className="text-[16px] font-medium text-[#1a1816]">비밀번호 재설정</h2>
-                <p className="text-[13px] text-[#a09890] mt-1">
+                <h2 className="text-[16px] font-medium text-[#1e1b2e]">비밀번호 재설정</h2>
+                <p className="text-[13px] text-[#9585c2] mt-1">
                   가입한 이메일을 입력하면 재설정 링크를 보내드립니다.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-[13px] text-[#6b6560] mb-1.5">이메일</label>
+                  <label className="block text-[13px] text-[#5b4f85] mb-1.5">이메일</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="you@example.com"
-                    className="w-full px-3 py-2.5 border border-[#e8e5e0] rounded-lg text-[14px] text-[#1a1816] bg-white focus:outline-none focus:border-[#4a6fa5] placeholder:text-[#a09890]"
+                    className="w-full px-3 py-2.5 border border-[#ddd6f9] rounded-lg text-[14px] text-[#1e1b2e] bg-white focus:outline-none focus:border-[#7c3aed] placeholder:text-[#9585c2]"
                   />
                 </div>
 
                 {error && <p className="text-[13px] text-red-500">{error}</p>}
-                {info && <p className="text-[13px] text-[#4a6fa5]">{info}</p>}
+                {info && <p className="text-[13px] text-[#7c3aed]">{info}</p>}
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-[#4a6fa5] text-white text-[14px] font-medium rounded-lg hover:bg-[#3a5f95] disabled:opacity-50 transition-colors"
+                  className="w-full py-2.5 bg-[#7c3aed] text-white text-[14px] font-medium rounded-lg hover:bg-[#6d28d9] disabled:opacity-50 transition-colors"
                 >
                   {loading ? '전송 중…' : '재설정 이메일 보내기'}
                 </button>
@@ -123,13 +123,13 @@ export default function LoginPage() {
           ) : (
             <>
               {/* 로그인 / 회원가입 탭 */}
-              <div className="flex mb-6 bg-[#f2f1ee] rounded-lg p-1">
+              <div className="flex mb-6 bg-[#ede9ff] rounded-lg p-1">
                 {(['login', 'signup'] as const).map((m) => (
                   <button
                     key={m}
                     onClick={() => switchMode(m)}
                     className={`flex-1 py-2 text-[13px] font-medium rounded-md transition-colors
-                      ${mode === m ? 'bg-white text-[#1a1816] shadow-sm' : 'text-[#6b6560]'}`}
+                      ${mode === m ? 'bg-white text-[#1e1b2e] shadow-sm' : 'text-[#5b4f85]'}`}
                   >
                     {m === 'login' ? '로그인' : '회원가입'}
                   </button>
@@ -138,24 +138,24 @@ export default function LoginPage() {
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-[13px] text-[#6b6560] mb-1.5">이메일</label>
+                  <label className="block text-[13px] text-[#5b4f85] mb-1.5">이메일</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="you@example.com"
-                    className="w-full px-3 py-2.5 border border-[#e8e5e0] rounded-lg text-[14px] text-[#1a1816] bg-white focus:outline-none focus:border-[#4a6fa5] placeholder:text-[#a09890]"
+                    className="w-full px-3 py-2.5 border border-[#ddd6f9] rounded-lg text-[14px] text-[#1e1b2e] bg-white focus:outline-none focus:border-[#7c3aed] placeholder:text-[#9585c2]"
                   />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[13px] text-[#6b6560]">비밀번호</label>
+                    <label className="text-[13px] text-[#5b4f85]">비밀번호</label>
                     {mode === 'login' && (
                       <button
                         type="button"
                         onClick={() => switchMode('reset')}
-                        className="text-[12px] text-[#a09890] hover:text-[#4a6fa5] transition-colors"
+                        className="text-[12px] text-[#9585c2] hover:text-[#7c3aed] transition-colors"
                       >
                         비밀번호를 잊으셨나요?
                       </button>
@@ -168,17 +168,17 @@ export default function LoginPage() {
                     required
                     placeholder="••••••••"
                     minLength={6}
-                    className="w-full px-3 py-2.5 border border-[#e8e5e0] rounded-lg text-[14px] text-[#1a1816] bg-white focus:outline-none focus:border-[#4a6fa5] placeholder:text-[#a09890]"
+                    className="w-full px-3 py-2.5 border border-[#ddd6f9] rounded-lg text-[14px] text-[#1e1b2e] bg-white focus:outline-none focus:border-[#7c3aed] placeholder:text-[#9585c2]"
                   />
                 </div>
 
                 {error && <p className="text-[13px] text-red-500">{error}</p>}
-                {info && <p className="text-[13px] text-[#4a6fa5]">{info}</p>}
+                {info && <p className="text-[13px] text-[#7c3aed]">{info}</p>}
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-[#4a6fa5] text-white text-[14px] font-medium rounded-lg hover:bg-[#3a5f95] disabled:opacity-50 transition-colors"
+                  className="w-full py-2.5 bg-[#7c3aed] text-white text-[14px] font-medium rounded-lg hover:bg-[#6d28d9] disabled:opacity-50 transition-colors"
                 >
                   {loading ? '처리 중…' : mode === 'login' ? '로그인' : '회원가입'}
                 </button>

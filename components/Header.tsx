@@ -26,25 +26,25 @@ export default function Header({ userEmail }: HeaderProps) {
   })
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[#f8f7f4] border-b border-[#e8e5e0] flex items-center px-6">
+    <header className="sticky top-0 z-40 h-16 bg-[#f5f3ff] border-b border-[#ddd6f9] flex items-center px-6">
       <div className="max-w-[1100px] w-full mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1
-            className="text-[22px] font-bold text-[#1a1816]"
+            className="text-[22px] font-bold text-[#1e1b2e]"
             style={{ fontFamily: NANUM_MYEONGJO }}
           >
             memymemo
           </h1>
-          <span className="text-[13px] text-[#a09890] hidden sm:block">{today}</span>
+          <span className="text-[13px] text-[#9585c2] hidden sm:block">{today}</span>
         </div>
         <div className="flex items-center gap-3">
           {userEmail && (
-            <span className="text-[13px] text-[#6b6560] hidden sm:block">{userEmail}</span>
+            <span className="text-[13px] text-[#5b4f85] hidden sm:block">{userEmail}</span>
           )}
           <button
             onClick={handleSignOut}
             aria-label="로그아웃"
-            className="text-[13px] text-[#6b6560] hover:text-[#1a1816] px-3 py-1.5 rounded-lg hover:bg-[#f2f1ee] transition-colors"
+            className="text-[13px] text-[#5b4f85] hover:text-[#1e1b2e] px-3 py-1.5 rounded-lg hover:bg-[#ede9ff] transition-colors"
           >
             로그아웃
           </button>

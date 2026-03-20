@@ -124,7 +124,7 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
   }, [answer, category, question, fontFamily, fontSize, userId, photoFiles, onEntrySaved, onToast])
 
   return (
-    <section className="bg-white rounded-xl border border-[#e8e5e0] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
+    <section className="bg-white rounded-xl border border-[#ddd6f9] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_1.6fr] gap-6">
         <QuestionPanel
           category={category}

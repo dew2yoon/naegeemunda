@@ -33,13 +33,13 @@ export default function PhotoUpload({ previews, onAdd, onRemove }: PhotoUploadPr
             <img
               src={src}
               alt={`첨부 사진 ${i + 1}`}
-              className="w-full h-full object-cover rounded-lg border border-[#e8e5e0]"
+              className="w-full h-full object-cover rounded-lg border border-[#ddd6f9]"
             />
             <button
               type="button"
               onClick={() => onRemove(i)}
               aria-label={`사진 ${i + 1} 제거`}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#1a1816] text-white rounded-full text-[11px] flex items-center justify-center hover:bg-red-500 transition-colors"
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#1e1b2e] text-white rounded-full text-[11px] flex items-center justify-center hover:bg-red-500 transition-colors"
             >
               ×
             </button>
@@ -50,7 +50,7 @@ export default function PhotoUpload({ previews, onAdd, onRemove }: PhotoUploadPr
           type="button"
           onClick={() => inputRef.current?.click()}
           aria-label="사진 첨부"
-          className="w-20 h-20 border-2 border-dashed border-[#e8e5e0] rounded-lg flex flex-col items-center justify-center gap-1 text-[#a09890] hover:border-[#4a6fa5] hover:text-[#4a6fa5] transition-colors shrink-0"
+          className="w-20 h-20 border-2 border-dashed border-[#ddd6f9] rounded-lg flex flex-col items-center justify-center gap-1 text-[#9585c2] hover:border-[#7c3aed] hover:text-[#7c3aed] transition-colors shrink-0"
         >
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />

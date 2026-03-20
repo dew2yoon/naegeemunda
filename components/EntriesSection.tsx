@@ -42,15 +42,15 @@ export default function EntriesSection({
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-[16px] font-medium text-[#1a1816]">
+        <h2 className="text-[16px] font-medium text-[#1e1b2e]">
           나의 기록{' '}
-          <span className="text-[#a09890] font-normal">{totalCount}개</span>
+          <span className="text-[#9585c2] font-normal">{totalCount}개</span>
         </h2>
         {entries.length > 0 && (
           <button
             onClick={() => exportAllEntriesHtml(entries)}
             aria-label="전체 기록 내보내기"
-            className="text-[13px] text-[#4a6fa5] hover:text-[#3a5f95] flex items-center gap-1.5 transition-colors"
+            className="text-[13px] text-[#7c3aed] hover:text-[#6d28d9] flex items-center gap-1.5 transition-colors"
           >
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -61,7 +61,7 @@ export default function EntriesSection({
       </div>
 
       {timeline.length === 0 ? (
-        <div className="text-center py-16 text-[#a09890] text-[14px]">
+        <div className="text-center py-16 text-[#9585c2] text-[14px]">
           첫 번째 기록을 남겨보세요.
         </div>
       ) : (

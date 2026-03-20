@@ -41,35 +41,35 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#f5f3ff] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1
-            className="text-[28px] font-bold text-[#1a1816] mb-2"
+            className="text-[28px] font-bold text-[#1e1b2e] mb-2"
             style={{ fontFamily: NANUM_MYEONGJO }}
           >
             memymemo
           </h1>
         </div>
 
-        <div className="bg-white rounded-xl border border-[#e8e5e0] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
+        <div className="bg-white rounded-xl border border-[#ddd6f9] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
           {done ? (
             <div className="text-center py-4">
-              <p className="text-[15px] text-[#1a1816] mb-2">비밀번호가 변경되었습니다.</p>
-              <p className="text-[13px] text-[#a09890]">잠시 후 메인 화면으로 이동합니다…</p>
+              <p className="text-[15px] text-[#1e1b2e] mb-2">비밀번호가 변경되었습니다.</p>
+              <p className="text-[13px] text-[#9585c2]">잠시 후 메인 화면으로 이동합니다…</p>
             </div>
           ) : (
             <>
               <div className="mb-6">
-                <h2 className="text-[16px] font-medium text-[#1a1816]">새 비밀번호 설정</h2>
-                <p className="text-[13px] text-[#a09890] mt-1">
+                <h2 className="text-[16px] font-medium text-[#1e1b2e]">새 비밀번호 설정</h2>
+                <p className="text-[13px] text-[#9585c2] mt-1">
                   새로 사용할 비밀번호를 입력해주세요.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-[13px] text-[#6b6560] mb-1.5">새 비밀번호</label>
+                  <label className="block text-[13px] text-[#5b4f85] mb-1.5">새 비밀번호</label>
                   <input
                     type="password"
                     value={password}
@@ -77,18 +77,18 @@ export default function ResetPasswordPage() {
                     required
                     placeholder="6자 이상"
                     minLength={6}
-                    className="w-full px-3 py-2.5 border border-[#e8e5e0] rounded-lg text-[14px] text-[#1a1816] bg-white focus:outline-none focus:border-[#4a6fa5] placeholder:text-[#a09890]"
+                    className="w-full px-3 py-2.5 border border-[#ddd6f9] rounded-lg text-[14px] text-[#1e1b2e] bg-white focus:outline-none focus:border-[#7c3aed] placeholder:text-[#9585c2]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[13px] text-[#6b6560] mb-1.5">비밀번호 확인</label>
+                  <label className="block text-[13px] text-[#5b4f85] mb-1.5">비밀번호 확인</label>
                   <input
                     type="password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="w-full px-3 py-2.5 border border-[#e8e5e0] rounded-lg text-[14px] text-[#1a1816] bg-white focus:outline-none focus:border-[#4a6fa5] placeholder:text-[#a09890]"
+                    className="w-full px-3 py-2.5 border border-[#ddd6f9] rounded-lg text-[14px] text-[#1e1b2e] bg-white focus:outline-none focus:border-[#7c3aed] placeholder:text-[#9585c2]"
                   />
                 </div>
 
@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-[#4a6fa5] text-white text-[14px] font-medium rounded-lg hover:bg-[#3a5f95] disabled:opacity-50 transition-colors"
+                  className="w-full py-2.5 bg-[#7c3aed] text-white text-[14px] font-medium rounded-lg hover:bg-[#6d28d9] disabled:opacity-50 transition-colors"
                 >
                   {loading ? '변경 중…' : '비밀번호 변경'}
                 </button>

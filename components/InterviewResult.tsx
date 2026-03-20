@@ -131,13 +131,13 @@ export default function InterviewResult({
   }
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#f8f7f4] flex flex-col overflow-y-auto">
+    <div className="fixed inset-0 z-40 bg-[#f5f3ff] flex flex-col overflow-y-auto">
       {/* 헤더 */}
-      <div className="sticky top-0 bg-[#f8f7f4] border-b border-[#e8e5e0] px-6 py-4 flex items-center justify-between">
+      <div className="sticky top-0 bg-[#f5f3ff] border-b border-[#ddd6f9] px-6 py-4 flex items-center justify-between">
         <button
           onClick={onBack}
           aria-label="인터뷰로 돌아가기"
-          className="flex items-center gap-1.5 text-[13px] text-[#6b6560] hover:text-[#1a1816] transition-colors"
+          className="flex items-center gap-1.5 text-[13px] text-[#5b4f85] hover:text-[#1e1b2e] transition-colors"
         >
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -148,7 +148,7 @@ export default function InterviewResult({
           <button
             onClick={handleExport}
             aria-label="HTML로 내보내기"
-            className="flex items-center gap-1.5 px-3 py-2 text-[13px] text-[#4a6fa5] border border-[#4a6fa5] rounded-lg hover:bg-[#eef2f8] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-[13px] text-[#7c3aed] border border-[#7c3aed] rounded-lg hover:bg-[#ede9ff] transition-colors"
           >
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -159,7 +159,7 @@ export default function InterviewResult({
             onClick={handleSave}
             disabled={isSaving}
             aria-label="저장하기"
-            className="flex items-center gap-1.5 px-5 py-2 bg-[#4a6fa5] text-white text-[13px] font-medium rounded-lg hover:bg-[#3a5f95] disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 px-5 py-2 bg-[#7c3aed] text-white text-[13px] font-medium rounded-lg hover:bg-[#6d28d9] disabled:opacity-40 transition-colors"
           >
             {isSaving ? '저장 중…' : '저장하기'}
           </button>
@@ -171,32 +171,32 @@ export default function InterviewResult({
         {/* 인터뷰 타이틀 */}
         <div className="text-center mb-10">
           <div
-            className="text-[24px] font-bold text-[#1a1816] mb-3"
+            className="text-[24px] font-bold text-[#1e1b2e] mb-3"
             style={{ fontFamily: 'var(--font-nanum-myeongjo), serif' }}
           >
             🎙 {keyword} 인터뷰
           </div>
-          <div className="text-[13px] text-[#a09890]">{dateStr}</div>
+          <div className="text-[13px] text-[#9585c2]">{dateStr}</div>
         </div>
 
-        <hr className="border-[#e8e5e0] mb-8" />
+        <hr className="border-[#ddd6f9] mb-8" />
 
         {/* Q&A 목록 */}
         <div className="flex flex-col gap-8">
           {questions.map((q, i) => (
             <div key={i}>
               <p
-                className="text-[16px] text-[#4a6fa5] mb-3 leading-relaxed"
+                className="text-[16px] text-[#7c3aed] mb-3 leading-relaxed"
                 style={{ fontFamily: 'var(--font-nanum-myeongjo), serif' }}
               >
                 Q. {q}
               </p>
               <div
-                className="bg-white rounded-xl border border-[#e8e5e0] px-5 py-4 text-[#1a1816] whitespace-pre-wrap leading-relaxed min-h-[60px]"
+                className="bg-white rounded-xl border border-[#ddd6f9] px-5 py-4 text-[#1e1b2e] whitespace-pre-wrap leading-relaxed min-h-[60px]"
                 style={{ fontFamily: FONT_CSS_VAR[fontFamily], fontSize }}
               >
                 {answers[i] || (
-                  <span className="text-[#a09890] text-[13px]">— 답변 없음 —</span>
+                  <span className="text-[#9585c2] text-[13px]">— 답변 없음 —</span>
                 )}
               </div>
               {/* 사진 미리보기 */}
@@ -207,7 +207,7 @@ export default function InterviewResult({
                       key={j}
                       onClick={() => setLightbox({ urls: previews[i], index: j })}
                       aria-label={`Q${i + 1} 사진 ${j + 1} 크게 보기`}
-                      className="w-16 h-16 rounded-lg overflow-hidden border border-[#e8e5e0] hover:opacity-90 transition-opacity shrink-0"
+                      className="w-16 h-16 rounded-lg overflow-hidden border border-[#ddd6f9] hover:opacity-90 transition-opacity shrink-0"
                     >
                       <img src={src} alt="" className="w-full h-full object-cover" />
                     </button>
