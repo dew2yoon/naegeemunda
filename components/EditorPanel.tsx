@@ -6,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import Placeholder from '@tiptap/extension-placeholder'
-import { FontFamily, FontSize } from '@/types'
+import { FontFamily, FontSize, PhotoMeta } from '@/types'
 import { FONT_CSS_VAR } from '@/lib/fonts'
 import PhotoUpload from './PhotoUpload'
 
@@ -32,6 +32,7 @@ interface EditorPanelProps {
   fontSize: FontSize
   isSaving: boolean
   photoPreviews: string[]
+  photoMetas?: PhotoMeta[]
   onChange: (answer: string) => void
   onFontFamilyChange: (font: FontFamily) => void
   onFontSizeChange: (size: FontSize) => void
@@ -74,6 +75,7 @@ export default function EditorPanel({
   fontSize,
   isSaving,
   photoPreviews,
+  photoMetas,
   onChange,
   onFontFamilyChange,
   onFontSizeChange,
@@ -210,6 +212,7 @@ export default function EditorPanel({
       {/* 사진 첨부 */}
       <PhotoUpload
         previews={photoPreviews}
+        metadatas={photoMetas}
         onAdd={onPhotosAdd}
         onRemove={onPhotoRemove}
       />

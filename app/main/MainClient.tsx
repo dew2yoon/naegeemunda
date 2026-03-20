@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Entry, FontFamily, FontSize, InterviewSession } from '@/types'
+import { Entry, FontFamily, FontSize, InterviewSession, PhotoMeta } from '@/types'
 import Header from '@/components/Header'
 import WritingSection from '@/components/WritingSection'
 import EntriesSection from '@/components/EntriesSection'
@@ -13,7 +13,7 @@ import InterviewResult from '@/components/InterviewResult'
 type InterviewState =
   | null
   | { stage: 'session'; keyword: string; questions: string[] }
-  | { stage: 'result'; keyword: string; questions: string[]; answers: string[]; fontFamily: FontFamily; fontSize: FontSize; photoFiles: File[][] }
+  | { stage: 'result'; keyword: string; questions: string[]; answers: string[]; fontFamily: FontFamily; fontSize: FontSize; photoFiles: File[][]; photoMetas: PhotoMeta[][] }
 
 interface MainClientProps {
   user: { id: string; email: string }
@@ -55,7 +55,8 @@ export default function MainClient({ user, initialEntries, initialInterviewSessi
     answers: string[],
     fontFamily: FontFamily,
     fontSize: FontSize,
-    photoFiles: File[][]
+    photoFiles: File[][],
+    photoMetas: PhotoMeta[][]
   ) => {
     if (interviewState?.stage !== 'session') return
     setInterviewState({
@@ -66,6 +67,7 @@ export default function MainClient({ user, initialEntries, initialInterviewSessi
       fontFamily,
       fontSize,
       photoFiles,
+      photoMetas,
     })
   }, [interviewState])
 
@@ -132,6 +134,7 @@ export default function MainClient({ user, initialEntries, initialInterviewSessi
           fontFamily={interviewState.fontFamily}
           fontSize={interviewState.fontSize}
           photoFiles={interviewState.photoFiles}
+          photoMetas={interviewState.photoMetas}
           onSaved={handleInterviewSaved}
           onBack={handleResultBack}
           onToast={showToast}

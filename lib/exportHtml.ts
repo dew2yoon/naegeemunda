@@ -1,4 +1,4 @@
-import { Entry, InterviewSession } from '@/types'
+import { Entry, InterviewSession, PhotoMeta } from '@/types'
 
 const GOOGLE_FONTS_URL = `https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Dodum&family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@300;400;500&display=swap`
 
@@ -50,13 +50,27 @@ const HTML_STYLE = `
     color: #1e1b2e;
     white-space: pre-wrap;
   }
-  .photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .photos { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+  .photo-item { display: flex; flex-direction: column; align-items: center; }
   .photos img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; }
+  .photo-meta { font-size: 10px; color: #9585c2; margin-top: 4px; text-align: center; line-height: 1.4; }
   @media (max-width: 600px) {
     body { padding: 20px 12px; }
     .card { padding: 20px; }
   }
 `
+
+function buildPhotosHtml(urls: string[], metas?: PhotoMeta[]): string {
+  if (!urls || urls.length === 0) return ''
+  const items = urls.map((url, i) => {
+    const meta = metas?.[i]
+    const metaHtml = meta && (meta.date || meta.location)
+      ? `<div class="photo-meta">${meta.date ? `📅 ${meta.date}` : ''}${meta.date && meta.location ? '<br>' : ''}${meta.location ? `📍 ${meta.location}` : ''}</div>`
+      : ''
+    return `<div class="photo-item"><img src="${url}" alt="첨부 사진" />${metaHtml}</div>`
+  }).join('')
+  return `<div class="photos">${items}</div>`
+}
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
@@ -71,10 +85,7 @@ function formatDate(dateStr: string): string {
 
 export function exportSingleEntryHtml(entry: Entry): void {
   const dateStr = new Date(entry.created_at).toISOString().slice(0, 10)
-  const photosHtml =
-    entry.photos.length > 0
-      ? `<div class="photos">${entry.photos.map((url) => `<img src="${url}" alt="첨부 사진" />`).join('')}</div>`
-      : ''
+  const photosHtml = buildPhotosHtml(entry.photos ?? [], entry.photo_metadata ?? [])
 
   const html = `<!DOCTYPE html>
 <html lang="ko">
@@ -107,10 +118,7 @@ export function exportAllEntriesHtml(entries: Entry[]): void {
 
   const cardsHtml = entries
     .map((entry) => {
-      const photosHtml =
-        entry.photos.length > 0
-          ? `<div class="photos">${entry.photos.map((url) => `<img src="${url}" alt="첨부 사진" />`).join('')}</div>`
-          : ''
+      const photosHtml = buildPhotosHtml(entry.photos ?? [], entry.photo_metadata ?? [])
       return `<div class="card">
       <div class="badge">${entry.category}</div>
       <div class="date">${formatDate(entry.created_at)}</div>
@@ -149,11 +157,9 @@ export function exportInterviewSessionHtml(session: InterviewSession): void {
   const qaHtml = session.questions
     .map((q, i) => {
       const answer = session.answers[i] ?? ''
-      const photoEntry = session.photos.find((p) => p.question_index === i)
-      const photosHtml =
-        photoEntry && photoEntry.urls.length > 0
-          ? `<div class="photos">${photoEntry.urls.map((url) => `<img src="${url}" alt="첨부 사진" />`).join('')}</div>`
-          : ''
+      const photoEntry = (session.photos ?? []).find((p) => p.question_index === i)
+      const metaEntry = (session.photo_metadata ?? []).find((p) => p.question_index === i)
+      const photosHtml = buildPhotosHtml(photoEntry?.urls ?? [], metaEntry?.metas ?? [])
       return `<div class="qa-block">
       <div class="qa-question">Q. ${q}</div>
       <div class="answer">${answer || '<span style="color:#9585c2">— 답변 없음 —</span>'}</div>

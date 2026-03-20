@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FontFamily, FontSize, InterviewSession } from '@/types'
+import { FontFamily, FontSize, InterviewSession, PhotoMeta } from '@/types'
 import { FONT_CSS_VAR } from '@/lib/fonts'
 import { exportInterviewSessionHtml } from '@/lib/exportHtml'
 import { compressImage } from '@/lib/imageCompress'
@@ -16,6 +16,7 @@ interface InterviewResultProps {
   fontFamily: FontFamily
   fontSize: FontSize
   photoFiles: File[][]
+  photoMetas: PhotoMeta[][]
   onSaved: (session: InterviewSession) => void
   onBack: () => void
   onToast: (message: string, type?: 'success' | 'error') => void
@@ -29,6 +30,7 @@ export default function InterviewResult({
   fontFamily,
   fontSize,
   photoFiles,
+  photoMetas,
   onSaved,
   onBack,
   onToast,
@@ -61,6 +63,7 @@ export default function InterviewResult({
         questions,
         answers,
         photos: [],
+        photo_metadata: [],
         font_family: fontFamily,
         font_size: fontSize,
       })
@@ -75,11 +78,12 @@ export default function InterviewResult({
 
     // 2. 각 질문별 사진 압축 → Storage 업로드
     const photosPayload: { question_index: number; urls: string[] }[] = []
+    const metaPayload: { question_index: number; metas: PhotoMeta[] }[] = []
 
     await Promise.all(
       photoFiles.map(async (files, qIdx) => {
         if (files.length === 0) return
-        const urls: string[] = []
+        const pairs: { url: string; meta: PhotoMeta }[] = []
         await Promise.all(
           files.map(async (file, fIdx) => {
             try {
@@ -88,29 +92,32 @@ export default function InterviewResult({
               const { error } = await supabase.storage
                 .from('entry-photos')
                 .upload(path, compressed, { contentType: 'image/jpeg', upsert: false })
-              if (error) return
+              if (error) { console.error('[인터뷰 사진 업로드 실패]', error); return }
               const { data: urlData } = supabase.storage
                 .from('entry-photos')
                 .getPublicUrl(path)
-              urls.push(urlData.publicUrl)
+              pairs.push({ url: urlData.publicUrl, meta: photoMetas[qIdx]?.[fIdx] ?? {} })
             } catch { /* 실패한 사진은 건너뜀 */ }
           })
         )
-        if (urls.length > 0) photosPayload.push({ question_index: qIdx, urls })
+        if (pairs.length > 0) {
+          photosPayload.push({ question_index: qIdx, urls: pairs.map((p) => p.url) })
+          metaPayload.push({ question_index: qIdx, metas: pairs.map((p) => p.meta) })
+        }
       })
     )
 
-    // 3. photos 업데이트
+    // 3. photos + photo_metadata 업데이트
     if (photosPayload.length > 0) {
       await supabase
         .from('interview_sessions')
-        .update({ photos: photosPayload })
+        .update({ photos: photosPayload, photo_metadata: metaPayload })
         .eq('id', session.id)
     }
 
     setIsSaving(false)
     onToast('인터뷰가 저장되었습니다!')
-    onSaved({ ...session, photos: photosPayload } as InterviewSession)
+    onSaved({ ...session, photos: photosPayload, photo_metadata: metaPayload } as InterviewSession)
   }
 
   function handleExport() {
@@ -121,7 +128,8 @@ export default function InterviewResult({
       keyword,
       questions,
       answers,
-      photos: [],        // 저장 전이므로 사진 없이 export
+      photos: [],
+      photo_metadata: [],
       font_family: fontFamily,
       font_size: fontSize,
       created_at: new Date().toISOString(),

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { Category, FontFamily, FontSize, Entry } from '@/types'
+import { Category, FontFamily, FontSize, Entry, PhotoMeta } from '@/types'
 import { getRandomQuestion } from '@/lib/questions'
 import { compressImage } from '@/lib/imageCompress'
+import { extractPhotoMeta } from '@/lib/extractExif'
 import { createClient } from '@/lib/supabase'
 import QuestionPanel from './QuestionPanel'
 import EditorPanel from './EditorPanel'
@@ -25,21 +26,30 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
   const [fontSize, setFontSize] = useState<FontSize>('15px')
   const [isSaving, setIsSaving] = useState(false)
 
-  // 사진: File 원본 + 로컬 미리보기 URL
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([])
+  const [photoMetas, setPhotoMetas] = useState<PhotoMeta[]>([])
 
-  // object URL 정리
   useEffect(() => {
     return () => {
       photoPreviews.forEach((url) => URL.revokeObjectURL(url))
     }
   }, [photoPreviews])
 
-  const handlePhotosAdd = useCallback((files: File[]) => {
+  const handlePhotosAdd = useCallback(async (files: File[]) => {
     const newPreviews = files.map((f) => URL.createObjectURL(f))
     setPhotoFiles((prev) => [...prev, ...files])
     setPhotoPreviews((prev) => [...prev, ...newPreviews])
+    // 빈 메타로 먼저 추가 → 비동기 추출 후 교체
+    setPhotoMetas((prev) => [...prev, ...files.map(() => ({}))])
+
+    const metas = await Promise.all(files.map((f) => extractPhotoMeta(f)))
+    setPhotoMetas((prev) => {
+      const next = [...prev]
+      const offset = next.length - files.length
+      metas.forEach((m, i) => { next[offset + i] = m })
+      return next
+    })
   }, [])
 
   const handlePhotoRemove = useCallback((index: number) => {
@@ -48,6 +58,7 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
       URL.revokeObjectURL(prev[index])
       return prev.filter((_, i) => i !== index)
     })
+    setPhotoMetas((prev) => prev.filter((_, i) => i !== index))
   }, [])
 
   const handleSave = useCallback(async () => {
@@ -56,7 +67,6 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
 
     const supabase = createClient()
 
-    // 1. entry 먼저 저장 → ID 획득
     const { data: entry, error: insertError } = await supabase
       .from('entries')
       .insert({
@@ -67,6 +77,7 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
         font_family: fontFamily,
         font_size: fontSize,
         photos: [],
+        photo_metadata: [],
       })
       .select()
       .single()
@@ -77,10 +88,11 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
       return
     }
 
-    // 2. 사진이 있으면 압축 → Storage 업로드
     let photoUrls: string[] = []
+    let savedMetas: PhotoMeta[] = []
+
     if (photoFiles.length > 0) {
-      const uploads = await Promise.all(
+      const results = await Promise.all(
         photoFiles.map(async (file, i) => {
           try {
             const compressed = await compressImage(file)
@@ -97,45 +109,47 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
             const { data: urlData } = supabase.storage
               .from('entry-photos')
               .getPublicUrl(path)
-            return urlData.publicUrl
+            return { url: urlData.publicUrl, meta: photoMetas[i] ?? {} }
           } catch (e) {
             console.error('[사진 처리 오류]', e)
             return null
           }
         })
       )
-      photoUrls = uploads.filter((u): u is string => u !== null)
 
-      if (photoUrls.length < photoFiles.length) {
+      const succeeded = results.filter((r): r is { url: string; meta: PhotoMeta } => r !== null)
+      photoUrls = succeeded.map((r) => r.url)
+      savedMetas = succeeded.map((r) => r.meta)
+
+      if (succeeded.length < photoFiles.length) {
         onToast(
-          photoUrls.length === 0
+          succeeded.length === 0
             ? '사진 업로드에 실패했습니다. Supabase Storage 정책을 확인해주세요.'
-            : `${photoFiles.length}장 중 ${photoUrls.length}장만 업로드되었습니다.`,
+            : `${photoFiles.length}장 중 ${succeeded.length}장만 업로드되었습니다.`,
           'error'
         )
       }
 
-      // 3. photos URL로 entry 업데이트
       if (photoUrls.length > 0) {
         const { error: updateError } = await supabase
           .from('entries')
-          .update({ photos: photoUrls })
+          .update({ photos: photoUrls, photo_metadata: savedMetas })
           .eq('id', entry.id)
         if (updateError) console.error('[photos 업데이트 실패]', updateError)
       }
     }
 
     setIsSaving(false)
-    onEntrySaved({ ...entry, photos: photoUrls } as Entry)
+    onEntrySaved({ ...entry, photos: photoUrls, photo_metadata: savedMetas } as Entry)
     onToast('기록이 저장되었습니다!')
 
-    // 에디터 초기화
     setAnswer('')
     setPhotoFiles([])
     setPhotoPreviews((prev) => { prev.forEach(URL.revokeObjectURL); return [] })
+    setPhotoMetas([])
     const { question: newQ } = getRandomQuestion(category, [])
     setQuestion(newQ)
-  }, [answer, category, question, fontFamily, fontSize, userId, photoFiles, onEntrySaved, onToast])
+  }, [answer, category, question, fontFamily, fontSize, userId, photoFiles, photoMetas, onEntrySaved, onToast])
 
   return (
     <section className="bg-white rounded-xl border border-[#ddd6f9] p-6 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
@@ -152,6 +166,7 @@ export default function WritingSection({ userId, onEntrySaved, onToast }: Writin
           fontSize={fontSize}
           isSaving={isSaving}
           photoPreviews={photoPreviews}
+          photoMetas={photoMetas}
           onChange={setAnswer}
           onFontFamilyChange={setFontFamily}
           onFontSizeChange={setFontSize}

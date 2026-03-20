@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react'
-import { FontFamily, FontSize } from '@/types'
+import { FontFamily, FontSize, PhotoMeta } from '@/types'
+import { extractPhotoMeta } from '@/lib/extractExif'
 import { FONT_CSS_VAR } from '@/lib/fonts'
 import PhotoUpload from './PhotoUpload'
 
@@ -13,7 +14,7 @@ const FONT_FAMILIES: FontFamily[] = [
 interface InterviewSessionProps {
   keyword: string
   questions: string[]
-  onComplete: (answers: string[], fontFamily: FontFamily, fontSize: FontSize, photoFiles: File[][]) => void
+  onComplete: (answers: string[], fontFamily: FontFamily, fontSize: FontSize, photoFiles: File[][], photoMetas: PhotoMeta[][]) => void
   onAbort: () => void
 }
 
@@ -28,13 +29,12 @@ export default function InterviewSession({
   const [fontFamily, setFontFamily] = useState<FontFamily>('Noto Sans KR')
   const [fontSize, setFontSize] = useState<FontSize>('15px')
 
-  // 질문별 사진 파일 & 미리보기
   const [photoFiles, setPhotoFiles] = useState<File[][]>(Array.from({ length: questions.length }, () => []))
   const [photoPreviews, setPhotoPreviews] = useState<string[][]>(Array.from({ length: questions.length }, () => []))
+  const [photoMetas, setPhotoMetas] = useState<PhotoMeta[][]>(Array.from({ length: questions.length }, () => []))
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // 질문 변경 시 textarea 포커스 + 높이 리셋
   useEffect(() => {
     const el = textareaRef.current
     if (!el) return
@@ -43,7 +43,6 @@ export default function InterviewSession({
     el.focus()
   }, [currentIndex])
 
-  // unmount 시 object URL 정리
   useEffect(() => {
     return () => {
       photoPreviews.flat().forEach(URL.revokeObjectURL)
@@ -51,7 +50,6 @@ export default function InterviewSession({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // sessionStorage 임시 저장 (파일은 제외)
   useEffect(() => {
     sessionStorage.setItem(
       'interview_draft',
@@ -72,30 +70,51 @@ export default function InterviewSession({
     }
   }
 
-  const handlePhotosAdd = useCallback((files: File[]) => {
+  const handlePhotosAdd = useCallback(async (files: File[]) => {
     const newPreviews = files.map((f) => URL.createObjectURL(f))
+    const qi = currentIndex
+
     setPhotoFiles((prev) => {
       const next = [...prev]
-      next[currentIndex] = [...next[currentIndex], ...files]
+      next[qi] = [...next[qi], ...files]
       return next
     })
     setPhotoPreviews((prev) => {
       const next = [...prev]
-      next[currentIndex] = [...next[currentIndex], ...newPreviews]
+      next[qi] = [...next[qi], ...newPreviews]
+      return next
+    })
+    setPhotoMetas((prev) => {
+      const next = [...prev]
+      next[qi] = [...next[qi], ...files.map(() => ({}))]
+      return next
+    })
+
+    const metas = await Promise.all(files.map((f) => extractPhotoMeta(f)))
+    setPhotoMetas((prev) => {
+      const next = prev.map((row) => [...row])
+      const offset = next[qi].length - files.length
+      metas.forEach((m, i) => { next[qi][offset + i] = m })
       return next
     })
   }, [currentIndex])
 
   const handlePhotoRemove = useCallback((photoIndex: number) => {
+    const qi = currentIndex
     setPhotoFiles((prev) => {
       const next = [...prev]
-      next[currentIndex] = next[currentIndex].filter((_, i) => i !== photoIndex)
+      next[qi] = next[qi].filter((_, i) => i !== photoIndex)
       return next
     })
     setPhotoPreviews((prev) => {
       const next = [...prev]
-      URL.revokeObjectURL(next[currentIndex][photoIndex])
-      next[currentIndex] = next[currentIndex].filter((_, i) => i !== photoIndex)
+      URL.revokeObjectURL(next[qi][photoIndex])
+      next[qi] = next[qi].filter((_, i) => i !== photoIndex)
+      return next
+    })
+    setPhotoMetas((prev) => {
+      const next = [...prev]
+      next[qi] = next[qi].filter((_, i) => i !== photoIndex)
       return next
     })
   }, [currentIndex])
@@ -112,7 +131,7 @@ export default function InterviewSession({
       setCurrentIndex((i) => i + 1)
     } else {
       sessionStorage.removeItem('interview_draft')
-      onComplete(answers, fontFamily, fontSize, photoFiles)
+      onComplete(answers, fontFamily, fontSize, photoFiles, photoMetas)
     }
   }
 
@@ -152,12 +171,10 @@ export default function InterviewSession({
 
       {/* 본문 */}
       <div className="flex-1 max-w-[720px] w-full mx-auto px-4 py-10 flex flex-col gap-6">
-        {/* 진행 표시 */}
         <p className="text-[13px] text-[#9585c2] text-center">
           Q {currentIndex + 1} / {questions.length}
         </p>
 
-        {/* 질문 */}
         <p
           className="text-[22px] leading-[1.5] text-[#1e1b2e] text-center"
           style={{ fontFamily: 'var(--font-nanum-myeongjo), serif' }}
@@ -214,6 +231,7 @@ export default function InterviewSession({
         {/* 사진 첨부 */}
         <PhotoUpload
           previews={photoPreviews[currentIndex]}
+          metadatas={photoMetas[currentIndex]}
           onAdd={handlePhotosAdd}
           onRemove={handlePhotoRemove}
         />

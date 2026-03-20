@@ -1,3 +1,9 @@
+export interface PhotoMeta {
+  date?: string
+  time?: string
+  location?: string
+}
+
 export type Category =
   | '오늘의 일기'
   | '커리어 & 일'
@@ -24,6 +30,7 @@ export interface Entry {
   font_family: FontFamily
   font_size: FontSize
   photos: string[]
+  photo_metadata: PhotoMeta[]
   created_at: string
   updated_at: string
 }
@@ -35,6 +42,7 @@ export interface InterviewSession {
   questions: string[]
   answers: string[]
   photos: { question_index: number; urls: string[] }[]
+  photo_metadata: { question_index: number; metas: PhotoMeta[] }[]
   font_family: FontFamily
   font_size: FontSize
   created_at: string

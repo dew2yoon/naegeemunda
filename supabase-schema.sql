@@ -46,6 +46,12 @@ CREATE POLICY "Users can CRUD own interview_sessions"
 CREATE INDEX interview_sessions_user_created ON interview_sessions(user_id, created_at DESC);
 
 -- ─────────────────────────────────────────────────────────────────
+-- photo_metadata 컬럼 추가 (기존 DB에 적용할 ALTER TABLE)
+-- ─────────────────────────────────────────────────────────────────
+ALTER TABLE entries ADD COLUMN IF NOT EXISTS photo_metadata JSONB DEFAULT '[]';
+ALTER TABLE interview_sessions ADD COLUMN IF NOT EXISTS photo_metadata JSONB DEFAULT '[]';
+
+-- ─────────────────────────────────────────────────────────────────
 -- Storage: entry-photos 버킷 RLS 정책
 -- Supabase 대시보드 > Storage > entry-photos 버킷이 이미 생성된 상태에서 실행
 -- ─────────────────────────────────────────────────────────────────

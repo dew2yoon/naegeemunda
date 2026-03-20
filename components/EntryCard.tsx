@@ -149,19 +149,30 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
         dangerouslySetInnerHTML={{ __html: entry.answer }}
       />
 
-      {/* 사진 썸네일 */}
+      {/* 사진 썸네일 + 메타데이터 */}
       {(entry.photos ?? []).length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-3">
-          {(entry.photos ?? []).map((url, i) => (
-            <button
-              key={i}
-              onClick={() => setLightboxIndex(i)}
-              aria-label={`사진 ${i + 1} 크게 보기`}
-              className="w-16 h-16 rounded-lg overflow-hidden border border-[#ddd6f9] hover:opacity-90 transition-opacity shrink-0"
-            >
-              <img src={url} alt={`첨부 사진 ${i + 1}`} className="w-full h-full object-cover" />
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-3 mt-3">
+          {(entry.photos ?? []).map((url, i) => {
+            const meta = (entry.photo_metadata ?? [])[i]
+            const hasMeta = meta && (meta.date || meta.location)
+            return (
+              <div key={i} className="flex flex-col items-center shrink-0 w-16">
+                <button
+                  onClick={() => setLightboxIndex(i)}
+                  aria-label={`사진 ${i + 1} 크게 보기`}
+                  className="w-16 h-16 rounded-lg overflow-hidden border border-[#ddd6f9] hover:opacity-90 transition-opacity"
+                >
+                  <img src={url} alt={`첨부 사진 ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+                {hasMeta && (
+                  <div className="mt-1 text-[9px] text-[#9585c2] leading-snug text-center w-full">
+                    {meta.date && <div>📅 {meta.date}</div>}
+                    {meta.location && <div className="truncate">📍 {meta.location}</div>}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

@@ -1,9 +1,11 @@
 'use client'
 
 import { useRef } from 'react'
+import { PhotoMeta } from '@/types'
 
 interface PhotoUploadProps {
-  previews: string[]        // object URL (로컬 미리보기)
+  previews: string[]
+  metadatas?: PhotoMeta[]
   onAdd: (files: File[]) => void
   onRemove: (index: number) => void
 }
@@ -11,7 +13,7 @@ interface PhotoUploadProps {
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_MB = 5
 
-export default function PhotoUpload({ previews, onAdd, onRemove }: PhotoUploadProps) {
+export default function PhotoUpload({ previews, metadatas, onAdd, onRemove }: PhotoUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -21,30 +23,41 @@ export default function PhotoUpload({ previews, onAdd, onRemove }: PhotoUploadPr
       return true
     })
     if (files.length) onAdd(files)
-    // 같은 파일 재선택 가능하도록 초기화
     e.target.value = ''
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap gap-2">
-        {previews.map((src, i) => (
-          <div key={i} className="relative w-20 h-20 shrink-0">
-            <img
-              src={src}
-              alt={`첨부 사진 ${i + 1}`}
-              className="w-full h-full object-cover rounded-lg border border-[#ddd6f9]"
-            />
-            <button
-              type="button"
-              onClick={() => onRemove(i)}
-              aria-label={`사진 ${i + 1} 제거`}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#1e1b2e] text-white rounded-full text-[11px] flex items-center justify-center hover:bg-red-500 transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        ))}
+      <div className="flex flex-wrap gap-3">
+        {previews.map((src, i) => {
+          const meta = metadatas?.[i]
+          const hasMeta = meta && (meta.date || meta.location)
+          return (
+            <div key={i} className="flex flex-col items-center shrink-0 w-20">
+              <div className="relative w-20 h-20">
+                <img
+                  src={src}
+                  alt={`첨부 사진 ${i + 1}`}
+                  className="w-full h-full object-cover rounded-lg border border-[#ddd6f9]"
+                />
+                <button
+                  type="button"
+                  onClick={() => onRemove(i)}
+                  aria-label={`사진 ${i + 1} 제거`}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#1e1b2e] text-white rounded-full text-[11px] flex items-center justify-center hover:bg-red-500 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+              {hasMeta && (
+                <div className="mt-1 text-[9px] text-[#9585c2] leading-snug text-center w-full">
+                  {meta.date && <div>📅 {meta.date}</div>}
+                  {meta.location && <div className="truncate">📍 {meta.location}</div>}
+                </div>
+              )}
+            </div>
+          )
+        })}
 
         <button
           type="button"
