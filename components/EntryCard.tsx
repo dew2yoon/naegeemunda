@@ -25,7 +25,10 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
   })
 
   async function handleCopyText() {
-    const text = `${entry.question}\n\n${entry.answer}\n\n— ${dateStr}`
+    const answerText = entry.answer.startsWith('<')
+      ? new DOMParser().parseFromString(entry.answer, 'text/html').body.innerText
+      : entry.answer
+    const text = `${entry.question}\n\n${answerText}\n\n— ${dateStr}`
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
@@ -109,20 +112,19 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
       </p>
 
       {/* 답변 */}
-      <p
-        className="text-[14px] text-[#1a1816] line-clamp-3 leading-relaxed"
+      <div
+        className="text-[14px] text-[#1a1816] line-clamp-3 leading-relaxed tiptap"
         style={{
           fontFamily: FONT_CSS_VAR[entry.font_family],
           fontSize: entry.font_size,
         }}
-      >
-        {entry.answer}
-      </p>
+        dangerouslySetInnerHTML={{ __html: entry.answer }}
+      />
 
       {/* 사진 썸네일 */}
-      {entry.photos.length > 0 && (
+      {(entry.photos ?? []).length > 0 && (
         <div className="flex flex-wrap gap-2 mt-3">
-          {entry.photos.map((url, i) => (
+          {(entry.photos ?? []).map((url, i) => (
             <button
               key={i}
               onClick={() => setLightboxIndex(i)}
@@ -138,7 +140,7 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
       {/* 라이트박스 */}
       {lightboxIndex !== null && (
         <Lightbox
-          urls={entry.photos}
+          urls={entry.photos ?? []}
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onNav={setLightboxIndex}

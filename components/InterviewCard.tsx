@@ -29,10 +29,10 @@ export default function InterviewCard({ session, onDelete }: InterviewCardProps)
   }
 
   // 질문 인덱스 → 사진 URL 배열 맵
-  const photoMap = new Map(session.photos.map((p) => [p.question_index, p.urls]))
+  const photoMap = new Map((session.photos ?? []).map((p) => [p.question_index, p.urls]))
 
   const firstAnswer = session.answers.find((a) => a.trim()) ?? ''
-  const totalPhotos = session.photos.reduce((sum, p) => sum + p.urls.length, 0)
+  const totalPhotos = (session.photos ?? []).reduce((sum, p) => sum + p.urls.length, 0)
 
   return (
     <div className="bg-white rounded-xl border border-[#e8e5e0] p-5 shadow-[0_1px_3px_rgba(0,0,0,.08),0_4px_12px_rgba(0,0,0,.05)]">
@@ -84,15 +84,14 @@ export default function InterviewCard({ session, onDelete }: InterviewCardProps)
             {session.questions[0]}
           </p>
           {firstAnswer && (
-            <p
-              className="text-[13px] text-[#1a1816] line-clamp-3 leading-relaxed"
+            <div
+              className="text-[13px] text-[#1a1816] line-clamp-3 leading-relaxed tiptap"
               style={{
                 fontFamily: FONT_CSS_VAR[session.font_family],
                 fontSize: session.font_size,
               }}
-            >
-              {firstAnswer}
-            </p>
+              dangerouslySetInnerHTML={{ __html: firstAnswer }}
+            />
           )}
           {/* 첫 번째 질문 사진 썸네일 */}
           {photoMap.get(0)?.length ? (
@@ -125,15 +124,16 @@ export default function InterviewCard({ session, onDelete }: InterviewCardProps)
                 >
                   Q{i + 1}. {q}
                 </p>
-                <p
-                  className="text-[13px] text-[#1a1816] leading-relaxed whitespace-pre-wrap"
+                <div
+                  className="text-[13px] text-[#1a1816] leading-relaxed tiptap"
                   style={{
                     fontFamily: FONT_CSS_VAR[session.font_family],
                     fontSize: session.font_size,
                   }}
-                >
-                  {session.answers[i] || <span className="text-[#a09890]">—</span>}
-                </p>
+                  dangerouslySetInnerHTML={{
+                    __html: session.answers[i] || '<span style="color:#a09890">—</span>',
+                  }}
+                />
                 {qPhotos.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {qPhotos.map((url, j) => (
