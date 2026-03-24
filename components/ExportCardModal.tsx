@@ -1,185 +1,100 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { Entry } from '@/types'
-import { drawCard, downloadCardPng } from '@/lib/cardExport'
+import {
+  loadEntryPhoto,
+  generateAllThumbnails,
+  drawCardWithPhoto,
+  downloadCardPng,
+} from '@/lib/cardExport'
 
-interface Template {
-  id: number
-  name: string
-  // CSS thumbnail design tokens
-  bg: string
-  accent: string
-  layout: 'overlay' | 'split-h' | 'gradient-bottom' | 'polaroid' | 'magazine' | 'white' | 'cinema' | 'watercolor' | 'split-v' | 'typo'
-}
-
-const TEMPLATES: Template[] = [
-  { id: 1,  name: '다크 오버레이',   bg: 'linear-gradient(135deg,#2d1b4e,#1a1a2e)', accent: '#fff',    layout: 'overlay' },
-  { id: 2,  name: '하단 바',         bg: 'linear-gradient(135deg,#c4b5fd,#ddd6f9)', accent: '#7c3aed', layout: 'split-h' },
-  { id: 3,  name: '그라데이션 무드', bg: 'linear-gradient(135deg,#7c3aed,#c4b5fd)', accent: '#fff',    layout: 'gradient-bottom' },
-  { id: 4,  name: '폴라로이드',      bg: '#f5f0e8',                                  accent: '#5b4f85', layout: 'polaroid' },
-  { id: 5,  name: '매거진 커버',     bg: 'linear-gradient(135deg,#1a1a2e,#4c1d95)', accent: '#c4b5fd', layout: 'magazine' },
-  { id: 6,  name: '미니멀 화이트',   bg: '#ffffff',                                  accent: '#7c3aed', layout: 'white' },
-  { id: 7,  name: '시네마틱',        bg: '#0a0a0a',                                  accent: '#fff',    layout: 'cinema' },
-  { id: 8,  name: '수채화 감성',     bg: 'linear-gradient(135deg,#f0e6ff,#fce4ec,#fff)', accent: '#5b4f85', layout: 'watercolor' },
-  { id: 9,  name: '스플릿 컬러',     bg: 'linear-gradient(90deg,#ddd6f9 50%,#7c3aed 50%)', accent: '#fff', layout: 'split-v' },
-  { id: 10, name: '타이포그래피',    bg: '#f5f3ff',                                  accent: '#7c3aed', layout: 'typo' },
+const TEMPLATE_NAMES = [
+  '다크 오버레이',
+  '하단 바',
+  '그라데이션 무드',
+  '폴라로이드',
+  '매거진 커버',
+  '미니멀 화이트',
+  '시네마틱',
+  '수채화 감성',
+  '스플릿 컬러',
+  '타이포그래피',
 ]
 
-function ThumbnailCard({ template, selected, onClick }: {
-  template: Template
-  selected: boolean
-  onClick: () => void
-}) {
+// ─── Spinner ─────────────────────────────────────────────────────────────────
+
+function Spinner({ size = 24, color = '#7c3aed' }: { size?: number; color?: string }) {
   return (
-    <button
-      onClick={onClick}
-      className={`relative w-full aspect-square rounded-xl overflow-hidden transition-all border-2 focus:outline-none ${
-        selected
-          ? 'border-[#7c3aed] shadow-[0_0_0_3px_rgba(124,58,237,0.25)]'
-          : 'border-transparent hover:border-[#c4b5fd]'
-      }`}
-      title={template.name}
-    >
-      {/* Background */}
-      <div className="absolute inset-0" style={{ background: template.bg }} />
-
-      {/* Layout overlay hint */}
-      <ThumbnailLayout layout={template.layout} accent={template.accent} />
-
-      {/* Template number */}
-      <div
-        className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-        style={{ background: 'rgba(0,0,0,0.35)', color: '#fff' }}
-      >
-        {template.id}
-      </div>
-    </button>
+    <div
+      className="rounded-full border-2 border-t-transparent animate-spin"
+      style={{ width: size, height: size, borderColor: `${color}40`, borderTopColor: color }}
+    />
   )
 }
 
-function ThumbnailLayout({ layout, accent }: { layout: Template['layout']; accent: string }) {
-  const base = 'absolute inset-0 flex flex-col'
-  switch (layout) {
-    case 'overlay':
-      return (
-        <div className={base} style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="absolute bottom-3 left-0 right-0 flex flex-col items-center gap-1 px-2">
-            <div className="h-1.5 w-14 rounded" style={{ background: accent, opacity: 0.9 }} />
-            <div className="h-1 w-10 rounded" style={{ background: accent, opacity: 0.6 }} />
+// ─── Thumbnail Grid Item ──────────────────────────────────────────────────────
+
+function ThumbItem({
+  index,
+  dataUrl,
+  loading,
+  selected,
+  onSelect,
+}: {
+  index: number
+  dataUrl: string | null
+  loading: boolean
+  selected: boolean
+  onSelect: () => void
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <button
+        onClick={onSelect}
+        className={`relative w-full aspect-square rounded-xl overflow-hidden border-2 transition-all focus:outline-none ${
+          selected
+            ? 'border-[#7c3aed] shadow-[0_0_0_3px_rgba(124,58,237,0.25)]'
+            : 'border-[#ede9ff] hover:border-[#c4b5fd]'
+        }`}
+      >
+        {loading || !dataUrl ? (
+          <div className="absolute inset-0 bg-[#f5f3ff] flex items-center justify-center">
+            <Spinner size={20} />
           </div>
+        ) : (
+          <img
+            src={dataUrl}
+            alt={TEMPLATE_NAMES[index]}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+        )}
+        {/* Number badge */}
+        <div
+          className="absolute top-1 left-1 w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold"
+          style={{ background: 'rgba(0,0,0,0.45)', color: '#fff' }}
+        >
+          {index + 1}
         </div>
-      )
-    case 'split-h':
-      return (
-        <div className="absolute inset-0">
-          <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-white/95" />
-          <div className="absolute bottom-[35%] left-2 w-1 h-[22%] rounded-full" style={{ background: '#7c3aed' }} />
-          <div className="absolute bottom-[24%] left-4 right-2 flex flex-col gap-1">
-            <div className="h-1.5 w-12 rounded" style={{ background: '#1e1b2e', opacity: 0.7 }} />
-            <div className="h-1 w-9 rounded" style={{ background: '#5b4f85', opacity: 0.5 }} />
+        {/* Selected checkmark */}
+        {selected && (
+          <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-[#7c3aed] flex items-center justify-center">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
-        </div>
-      )
-    case 'gradient-bottom':
-      return (
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top,rgba(124,58,237,0.8) 0%,transparent 55%)' }}>
-          <div className="absolute bottom-3 left-2 flex flex-col gap-1">
-            <div className="h-1.5 w-14 rounded" style={{ background: accent, opacity: 0.9 }} />
-            <div className="h-1 w-9 rounded" style={{ background: accent, opacity: 0.7 }} />
-          </div>
-        </div>
-      )
-    case 'polaroid':
-      return (
-        <div className="absolute inset-0 flex items-start justify-center pt-2">
-          <div className="bg-white rounded shadow-md w-[70%] h-[75%] flex flex-col overflow-hidden">
-            <div className="flex-1" style={{ background: 'linear-gradient(135deg,#ddd6f9,#c4b5fd)' }} />
-            <div className="h-5 flex items-center justify-center">
-              <div className="h-1 w-8 rounded" style={{ background: '#5b4f85', opacity: 0.6 }} />
-            </div>
-          </div>
-        </div>
-      )
-    case 'magazine':
-      return (
-        <div className={base} style={{ background: 'rgba(0,0,0,0.4)' }}>
-          <div className="absolute top-2 left-2 right-2 flex flex-col gap-0.5">
-            <div className="h-2.5 w-16 rounded" style={{ background: '#fff', opacity: 0.9 }} />
-            <div className="h-0.5 w-full rounded" style={{ background: '#7c3aed' }} />
-          </div>
-          <div className="absolute bottom-3 left-2 right-2">
-            <div className="text-[16px] font-bold leading-none mb-0.5" style={{ color: '#c4b5fd' }}>"</div>
-            <div className="h-1.5 w-12 rounded mb-1" style={{ background: '#fff', opacity: 0.85 }} />
-            <div className="h-1 w-8 rounded" style={{ background: '#fff', opacity: 0.55 }} />
-          </div>
-        </div>
-      )
-    case 'white':
-      return (
-        <div className={base}>
-          <div className="absolute top-2 right-2 w-10 h-10 rounded-full border border-[#ddd6f9] overflow-hidden">
-            <div style={{ background: 'linear-gradient(135deg,#ddd6f9,#c4b5fd)', width: '100%', height: '100%' }} />
-          </div>
-          <div className="absolute top-14 left-2 right-12 flex flex-col gap-1">
-            <div className="text-[28px] font-bold leading-none" style={{ color: '#c4b5fd' }}>"</div>
-            <div className="h-1.5 w-12 rounded" style={{ background: '#5b4f85', opacity: 0.7 }} />
-            <div className="h-1 w-9 rounded" style={{ background: '#5b4f85', opacity: 0.5 }} />
-          </div>
-        </div>
-      )
-    case 'cinema':
-      return (
-        <div className="absolute inset-0 flex flex-col">
-          <div className="bg-[#0a0a0a] h-[22%] flex items-center justify-center">
-            <div className="h-1 w-8 rounded" style={{ background: '#fff', opacity: 0.5 }} />
-          </div>
-          <div className="flex-1" style={{ background: 'linear-gradient(135deg,#3b0764,#7c3aed)' }} />
-          <div className="bg-[#0a0a0a] h-[22%] flex flex-col items-center justify-center gap-0.5">
-            <div className="h-1.5 w-12 rounded" style={{ background: '#fff', opacity: 0.8 }} />
-            <div className="h-1 w-9 rounded" style={{ background: '#fff', opacity: 0.5 }} />
-          </div>
-        </div>
-      )
-    case 'watercolor':
-      return (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-white/90 rounded-lg w-[75%] h-[65%] flex flex-col gap-1 p-2">
-            <div className="h-1 w-8 rounded" style={{ background: '#7c3aed', opacity: 0.5 }} />
-            <div className="h-2 w-12 rounded" style={{ background: '#5b4f85', opacity: 0.7 }} />
-            <div className="h-0.5 w-full rounded mt-0.5" style={{ background: '#ddd6f9' }} />
-            <div className="h-1 w-10 rounded" style={{ background: '#3d3b4e', opacity: 0.5 }} />
-            <div className="h-1 w-8 rounded" style={{ background: '#3d3b4e', opacity: 0.4 }} />
-          </div>
-        </div>
-      )
-    case 'split-v':
-      return (
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2" />
-          <div className="w-1/2 flex flex-col gap-1 p-2">
-            <div className="text-[18px] font-bold" style={{ color: '#c4b5fd', lineHeight: 1 }}>"</div>
-            <div className="h-1.5 w-8 rounded mt-0.5" style={{ background: '#fff', opacity: 0.85 }} />
-            <div className="h-1 w-6 rounded" style={{ background: '#fff', opacity: 0.65 }} />
-          </div>
-        </div>
-      )
-    case 'typo':
-      return (
-        <div className={base}>
-          <div className="absolute text-[48px] font-bold leading-none" style={{ color: '#c4b5fd', top: 2, left: 4 }}>"</div>
-          <div className="absolute top-10 left-2 right-2 flex flex-col gap-1">
-            <div className="h-2.5 w-full rounded" style={{ background: '#1e1b2e', opacity: 0.7 }} />
-            <div className="h-2 w-11 rounded" style={{ background: '#1e1b2e', opacity: 0.6 }} />
-            <div className="h-0.5 w-8 rounded mt-0.5" style={{ background: '#7c3aed' }} />
-            <div className="h-1 w-10 rounded" style={{ background: '#4b4480', opacity: 0.55 }} />
-          </div>
-          <div className="absolute text-[36px] font-bold leading-none" style={{ color: '#c4b5fd', bottom: 2, right: 4 }}>"</div>
-        </div>
-      )
-    default: return null
-  }
+        )}
+      </button>
+      <span className="text-[10px] text-[#9585c2] text-center leading-tight px-0.5">
+        {TEMPLATE_NAMES[index]}
+      </span>
+    </div>
+  )
 }
+
+// ─── Main Modal ───────────────────────────────────────────────────────────────
 
 interface ExportCardModalProps {
   entry: Entry
@@ -187,58 +102,115 @@ interface ExportCardModalProps {
 }
 
 export default function ExportCardModal({ entry, onClose }: ExportCardModalProps) {
-  const [selectedId, setSelectedId] = useState(1)
-  const [isRendering, setIsRendering] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [selectedIdx, setSelectedIdx] = useState(0)          // 0-based
+  const [thumbnails, setThumbnails] = useState<(string | null)[]>(Array(10).fill(null))
+  const [thumbsLoading, setThumbsLoading] = useState(true)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
-  const [previewDataUrl, setPreviewDataUrl] = useState<string>('')
 
-  const renderPreview = useCallback(async (templateId: number) => {
-    setIsRendering(true)
+  // Store preloaded photo so we don't re-fetch on every render
+  const photoRef = useRef<HTMLImageElement | null>(null)
+  const mountedRef = useRef(false)
+
+  // Portal safety: only render after client mount
+  useEffect(() => {
+    setMounted(true)
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
+  // Preload photo + generate all thumbnails on open
+  useEffect(() => {
+    if (!mounted) return
+    let cancelled = false
+
+    async function init() {
+      setThumbsLoading(true)
+      try {
+        // 1. Load photo once
+        const photo = await loadEntryPhoto(entry)
+        if (cancelled) return
+        photoRef.current = photo
+        console.debug('[ExportCardModal] photo loaded:', photo ? `${photo.naturalWidth}x${photo.naturalHeight}` : 'null (no photo)')
+
+        // 2. Generate all 10 thumbnails in parallel (small size = fast)
+        const thumbDataUrls = await generateAllThumbnails(entry, photo, 220)
+        if (cancelled) return
+        setThumbnails(thumbDataUrls)
+        // Use first thumbnail as initial preview (upscaled)
+        setPreviewUrl(thumbDataUrls[0] ?? null)
+      } catch (e) {
+        console.error('[ExportCardModal] init error:', e)
+      } finally {
+        if (!cancelled) setThumbsLoading(false)
+      }
+    }
+
+    init()
+    return () => { cancelled = true }
+  }, [mounted, entry])
+
+  // Re-render preview at higher res when selection changes
+  const renderPreview = useCallback(async (idx: number) => {
+    setPreviewLoading(true)
     try {
       const canvas = document.createElement('canvas')
-      await drawCard(canvas, entry, templateId, 600)
-      setPreviewDataUrl(canvas.toDataURL('image/png'))
+      await drawCardWithPhoto(canvas, entry, idx + 1, 500, photoRef.current ?? null)
+      if (mountedRef.current) setPreviewUrl(canvas.toDataURL('image/jpeg', 0.9))
     } catch (e) {
-      console.error('Preview render error:', e)
+      console.error('[ExportCardModal] preview render error:', e)
+      // Fallback to thumbnail
+      setPreviewUrl(thumbnails[idx] ?? null)
     } finally {
-      setIsRendering(false)
+      if (mountedRef.current) setPreviewLoading(false)
     }
-  }, [entry])
+  }, [entry, thumbnails])
 
-  useEffect(() => {
-    renderPreview(selectedId)
-  }, [selectedId, renderPreview])
+  const handleSelect = useCallback((idx: number) => {
+    if (idx === selectedIdx) return
+    setSelectedIdx(idx)
+    renderPreview(idx)
+  }, [selectedIdx, renderPreview])
 
-  const handleSelect = (id: number) => {
-    if (id === selectedId) return
-    setSelectedId(id)
-  }
-
-  const handleDownload = async () => {
+  const handleDownload = useCallback(async () => {
     setIsDownloading(true)
     try {
-      await downloadCardPng(entry, selectedId)
+      await downloadCardPng(entry, selectedIdx + 1, photoRef.current)
     } catch (e) {
-      console.error('Download error:', e)
+      console.error('[ExportCardModal] download error:', e)
     } finally {
       setIsDownloading(false)
     }
-  }
+  }, [entry, selectedIdx])
 
-  const selectedTemplate = TEMPLATES.find((t) => t.id === selectedId)!
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+  if (!mounted) return null
+
+  const modal = (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto flex flex-col"
+        onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#ede9ff]">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#ede9ff] shrink-0">
           <div>
             <h2 className="text-[16px] font-semibold text-[#1e1b2e]">이미지 카드 내보내기</h2>
-            <p className="text-[12px] text-[#9585c2] mt-0.5">1080×1080px PNG 다운로드</p>
+            <p className="text-[12px] text-[#9585c2] mt-0.5">
+              1080 × 1080 px PNG
+              {entry.photos?.length ? ' · 첨부 사진 포함' : ' · 라벤더 배경'}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -250,20 +222,25 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
           </button>
         </div>
 
-        <div className="p-6 flex flex-col gap-6">
-          {/* Template grid */}
+        <div className="p-6 flex flex-col gap-6 overflow-y-auto">
+          {/* Thumbnail Grid */}
           <div>
-            <p className="text-[13px] font-medium text-[#5b4f85] mb-3">템플릿 선택</p>
-            <div className="grid grid-cols-5 gap-2.5">
-              {TEMPLATES.map((t) => (
-                <div key={t.id} className="flex flex-col items-center gap-1">
-                  <ThumbnailCard
-                    template={t}
-                    selected={t.id === selectedId}
-                    onClick={() => handleSelect(t.id)}
-                  />
-                  <span className="text-[10px] text-[#9585c2] text-center leading-tight">{t.name}</span>
-                </div>
+            <p className="text-[13px] font-medium text-[#5b4f85] mb-3">
+              템플릿 선택
+              {thumbsLoading && (
+                <span className="ml-2 text-[11px] text-[#9585c2] font-normal">미리보기 생성 중…</span>
+              )}
+            </p>
+            <div className="grid grid-cols-5 gap-3">
+              {TEMPLATE_NAMES.map((_, i) => (
+                <ThumbItem
+                  key={i}
+                  index={i}
+                  dataUrl={thumbnails[i]}
+                  loading={thumbsLoading && !thumbnails[i]}
+                  selected={selectedIdx === i}
+                  onSelect={() => handleSelect(i)}
+                />
               ))}
             </div>
           </div>
@@ -271,31 +248,31 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
           {/* Preview */}
           <div>
             <p className="text-[13px] font-medium text-[#5b4f85] mb-3">
-              미리보기 — <span className="text-[#7c3aed]">{selectedTemplate.name}</span>
+              미리보기 —{' '}
+              <span className="text-[#7c3aed]">{TEMPLATE_NAMES[selectedIdx]}</span>
             </p>
-            <div className="relative flex justify-center">
-              <div className="w-[360px] h-[360px] rounded-xl overflow-hidden border border-[#ede9ff] shadow-md bg-[#f5f3ff] flex items-center justify-center">
-                {isRendering ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-8 h-8 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[12px] text-[#9585c2]">렌더링 중...</span>
-                  </div>
-                ) : previewDataUrl ? (
+            <div className="flex justify-center">
+              <div className="w-[400px] h-[400px] rounded-xl overflow-hidden border border-[#ede9ff] shadow-md bg-[#f5f3ff] flex items-center justify-center relative">
+                {previewUrl ? (
                   <img
-                    src={previewDataUrl}
+                    src={previewUrl}
                     alt="카드 미리보기"
                     className="w-full h-full object-contain"
                   />
-                ) : null}
+                ) : (
+                  <Spinner size={32} />
+                )}
+                {previewLoading && previewUrl && (
+                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                    <Spinner size={28} />
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Hidden canvas for ref */}
-          <canvas ref={previewCanvasRef} className="hidden" />
-
-          {/* Download button */}
-          <div className="flex justify-end gap-3">
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-1">
             <button
               onClick={onClose}
               className="px-4 py-2.5 text-[13px] text-[#5b4f85] hover:bg-[#ede9ff] rounded-lg transition-colors"
@@ -304,14 +281,11 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
             </button>
             <button
               onClick={handleDownload}
-              disabled={isDownloading || isRendering}
-              className="px-6 py-2.5 text-[13px] font-medium bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              disabled={isDownloading || thumbsLoading}
+              className="px-6 py-2.5 text-[13px] font-medium bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {isDownloading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  저장 중...
-                </>
+                <><Spinner size={16} color="#fff" />저장 중…</>
               ) : (
                 <>
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -326,4 +300,6 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
       </div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }
