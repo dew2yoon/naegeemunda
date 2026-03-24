@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase'
 import { NANUM_MYEONGJO } from '@/lib/fonts'
 import { useRouter } from 'next/navigation'
+import NotificationSettings from '@/components/NotificationSettings'
+import { useCallback, useState } from 'react'
+import Toast from '@/components/Toast'
 
 interface HeaderProps {
   userEmail?: string
@@ -11,12 +14,17 @@ interface HeaderProps {
 export default function Header({ userEmail }: HeaderProps) {
   const router = useRouter()
   const supabase = createClient()
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
   }
+
+  const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type })
+  }, [])
 
   const today = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -26,30 +34,41 @@ export default function Header({ userEmail }: HeaderProps) {
   })
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[#f5f3ff] border-b border-[#ddd6f9] flex items-center px-6">
-      <div className="max-w-[1100px] w-full mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1
-            className="text-[22px] font-bold text-[#1e1b2e]"
-            style={{ fontFamily: NANUM_MYEONGJO }}
-          >
-            memymemo
-          </h1>
-          <span className="text-[13px] text-[#9585c2] hidden sm:block">{today}</span>
+    <>
+      <header className="sticky top-0 z-40 h-16 bg-[#f5f3ff] border-b border-[#ddd6f9] flex items-center px-6">
+        <div className="max-w-[1100px] w-full mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1
+              className="text-[22px] font-bold text-[#1e1b2e]"
+              style={{ fontFamily: NANUM_MYEONGJO }}
+            >
+              memymemo
+            </h1>
+            <span className="text-[13px] text-[#9585c2] hidden sm:block">{today}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            {userEmail && (
+              <span className="text-[13px] text-[#5b4f85] hidden sm:block">{userEmail}</span>
+            )}
+            <NotificationSettings onToast={showToast} />
+            <button
+              onClick={handleSignOut}
+              aria-label="로그아웃"
+              className="text-[13px] text-[#5b4f85] hover:text-[#1e1b2e] px-3 py-1.5 rounded-lg hover:bg-[#ede9ff] transition-colors"
+            >
+              로그아웃
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          {userEmail && (
-            <span className="text-[13px] text-[#5b4f85] hidden sm:block">{userEmail}</span>
-          )}
-          <button
-            onClick={handleSignOut}
-            aria-label="로그아웃"
-            className="text-[13px] text-[#5b4f85] hover:text-[#1e1b2e] px-3 py-1.5 rounded-lg hover:bg-[#ede9ff] transition-colors"
-          >
-            로그아웃
-          </button>
-        </div>
-      </div>
-    </header>
+      </header>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </>
   )
 }
