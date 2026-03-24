@@ -5,6 +5,7 @@ import { Entry } from '@/types'
 import { exportSingleEntryHtml, exportInstagramCardHtml, exportBlogPostHtml } from '@/lib/exportHtml'
 import { FONT_CSS_VAR, NANUM_MYEONGJO } from '@/lib/fonts'
 import Lightbox from './Lightbox'
+import ExportCardModal from './ExportCardModal'
 
 interface EntryCardProps {
   entry: Entry
@@ -16,6 +17,7 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
+  const [showCardModal, setShowCardModal] = useState(false)
 
   const dateStr = new Date(entry.created_at).toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -113,6 +115,13 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
                   >
                     📝 블로그 포스트
                   </button>
+                  <div className="border-t border-[#ede9ff] my-1" />
+                  <button
+                    onClick={() => { setShowCardModal(true); setShowExportMenu(false) }}
+                    className="w-full text-left px-3 py-2 text-[13px] text-[#5b4f85] hover:bg-[#ede9ff] transition-colors flex items-center gap-2"
+                  >
+                    🖼️ 이미지 카드 (10종)
+                  </button>
                 </div>
               </>
             )}
@@ -207,6 +216,11 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 이미지 카드 내보내기 모달 */}
+      {showCardModal && (
+        <ExportCardModal entry={entry} onClose={() => setShowCardModal(false)} />
       )}
     </div>
   )
