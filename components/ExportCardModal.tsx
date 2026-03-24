@@ -8,6 +8,7 @@ import {
   generateAllThumbnails,
   drawCardWithPhoto,
   downloadCardPng,
+  canShareFiles,
 } from '@/lib/cardExport'
 
 const TEMPLATE_NAMES = [
@@ -109,6 +110,7 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const isMobile = mounted && canShareFiles()
 
   // Store preloaded photo so we don't re-fetch on every render
   const photoRef = useRef<HTMLImageElement | null>(null)
@@ -285,7 +287,9 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
               className="px-6 py-2.5 text-[13px] font-medium bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {isDownloading ? (
-                <><Spinner size={16} color="#fff" />저장 중…</>
+                <><Spinner size={16} color="#fff" />{isMobile ? '저장 중…' : '다운로드 중…'}</>
+              ) : isMobile ? (
+                <>📸 사진 앨범에 저장</>
               ) : (
                 <>
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

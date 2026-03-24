@@ -435,7 +435,32 @@ export async function drawCard(
   await drawCardWithPhoto(canvas, entry, templateId, size, photo)
 }
 
-/** Download full-res PNG using a preloaded photo (or load fresh if not provided). */
+/** Returns true when Web Share API with file support is available (mobile). */
+export function canShareFiles(): boolean {
+  if (typeof navigator === 'undefined' || !navigator.share || !navigator.canShare) return false
+  try {
+    const probe = new File([''], 'probe.png', { type: 'image/png' })
+    return navigator.canShare({ files: [probe] })
+  } catch {
+    return false
+  }
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+/**
+ * Save card as PNG.
+ * - Mobile (Web Share API with file support): opens native share sheet
+ *   so the user can save to Photos / Gallery.
+ * - Desktop (or share unsupported): triggers <a download> as fallback.
+ */
 export async function downloadCardPng(
   entry: Entry,
   templateId: number,
@@ -444,14 +469,29 @@ export async function downloadCardPng(
   const resolvedPhoto = photo !== undefined ? photo : await loadEntryPhoto(entry)
   const canvas = document.createElement('canvas')
   await drawCardWithPhoto(canvas, entry, templateId, SIZE, resolvedPhoto)
+
   const dateStr = new Date(entry.created_at).toISOString().slice(0, 10)
-  canvas.toBlob((blob) => {
-    if (!blob) { console.error('[cardExport] toBlob returned null'); return }
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `memymemo_card_t${templateId}_${dateStr}.png`
-    a.click()
-    URL.revokeObjectURL(url)
-  }, 'image/png')
+  const filename = `memymemo_${dateStr}.png`
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/png')
+  )
+  if (!blob) { console.error('[cardExport] toBlob returned null'); return }
+
+  // Mobile: Web Share API with file sharing
+  if (canShareFiles()) {
+    const file = new File([blob], filename, { type: 'image/png' })
+    try {
+      await navigator.share({ files: [file], title: 'memymemo' })
+      return
+    } catch (e) {
+      // AbortError = user cancelled — no fallback needed
+      if (e instanceof Error && e.name === 'AbortError') return
+      // Other error: fall through to download
+      console.warn('[cardExport] share failed, falling back to download:', e)
+    }
+  }
+
+  // Desktop fallback
+  triggerDownload(blob, filename)
 }
