@@ -12,13 +12,33 @@ export function htmlToPlainText(html: string): string {
   return (div.textContent ?? div.innerText ?? '').trim()
 }
 
+async function urlToDataUrl(url: string): Promise<string> {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`fetch ${res.status}`)
+  const blob = await res.blob()
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
 export async function loadImage(url: string): Promise<HTMLImageElement | null> {
+  // Convert to data URL first to avoid canvas CORS taint
+  let src = url
+  try {
+    src = await urlToDataUrl(url)
+  } catch {
+    // Fallback to direct load with CORS header
+    src = url
+  }
   return new Promise((resolve) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
     img.onerror = () => resolve(null)
-    img.src = url
+    img.src = src
   })
 }
 
