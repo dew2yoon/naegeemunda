@@ -12,8 +12,20 @@ export function htmlToPlainText(html: string): string {
   return (div.textContent ?? div.innerText ?? '').trim()
 }
 
+/** Add cache-bust param so browser doesn't serve a non-CORS-headered cached response. */
+function bustCache(url: string): string {
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}t=${Date.now()}`
+}
+
+/**
+ * Fetch remote image as a base64 data URL.
+ * IMPORTANT: credentials must be 'omit' for public Supabase Storage.
+ * Supabase replies with Access-Control-Allow-Origin: * which is
+ * incompatible with credentials: 'include' — the browser rejects it.
+ */
 async function fetchAsDataUrl(url: string): Promise<string> {
-  const res = await fetch(url, { mode: 'cors', credentials: 'include' })
+  const res = await fetch(bustCache(url), { mode: 'cors', credentials: 'omit' })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const blob = await res.blob()
   return new Promise<string>((resolve, reject) => {
@@ -35,31 +47,29 @@ function loadImgElement(src: string, useCors: boolean): Promise<HTMLImageElement
 }
 
 /**
- * Loads a remote image into an HTMLImageElement.
- * Strategy:
- *   1. fetch → blob → data URL  (avoids canvas CORS taint)
- *   2. direct load with crossOrigin=anonymous (fallback)
- * Returns null on complete failure.
+ * Load a remote image for canvas drawing.
+ * 1. fetch (credentials:omit) → blob → data URL  → no canvas taint
+ * 2. fallback: direct load + crossOrigin=anonymous + cache-bust
  */
 export async function loadImage(url: string): Promise<HTMLImageElement | null> {
-  // Strategy 1: fetch → data URL
+  // Strategy 1: fetch → data URL (avoids canvas CORS taint)
   try {
     const dataUrl = await fetchAsDataUrl(url)
-    console.debug('[cardExport] photo fetched as data URL, bytes:', dataUrl.length)
+    console.debug('[cardExport] photo→dataURL ok, bytes:', dataUrl.length)
     const img = await loadImgElement(dataUrl, false)
-    console.debug('[cardExport] photo loaded:', img.naturalWidth, 'x', img.naturalHeight)
+    console.debug('[cardExport] img decoded:', img.naturalWidth, 'x', img.naturalHeight)
     return img
   } catch (e1) {
     console.warn('[cardExport] fetch→dataURL failed:', e1)
   }
 
-  // Strategy 2: direct crossOrigin
+  // Strategy 2: direct crossOrigin with cache-bust
   try {
-    const img = await loadImgElement(url, true)
-    console.debug('[cardExport] photo loaded direct:', img.naturalWidth, 'x', img.naturalHeight)
+    const img = await loadImgElement(bustCache(url), true)
+    console.debug('[cardExport] direct load ok:', img.naturalWidth, 'x', img.naturalHeight)
     return img
   } catch (e2) {
-    console.error('[cardExport] photo load completely failed:', e2, 'url:', url)
+    console.error('[cardExport] photo load failed:', e2, '\nurl:', url)
     return null
   }
 }
@@ -435,7 +445,7 @@ export async function drawCard(
   await drawCardWithPhoto(canvas, entry, templateId, size, photo)
 }
 
-/** Returns true when Web Share API with file support is available (mobile). */
+/** Returns true when Web Share API with file support is available (iOS/Android). */
 export function canShareFiles(): boolean {
   if (typeof navigator === 'undefined' || !navigator.share || !navigator.canShare) return false
   try {
@@ -451,47 +461,62 @@ function triggerDownload(blob: Blob, filename: string) {
   const a = document.createElement('a')
   a.href = url
   a.download = filename
+  document.body.appendChild(a)
   a.click()
+  document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
 
+async function renderBlob(
+  entry: Entry,
+  templateId: number,
+  photo: HTMLImageElement | null | undefined
+): Promise<{ blob: Blob; filename: string } | null> {
+  const resolvedPhoto = photo !== undefined ? photo : await loadEntryPhoto(entry)
+  const canvas = document.createElement('canvas')
+  await drawCardWithPhoto(canvas, entry, templateId, SIZE, resolvedPhoto)
+  const dateStr = new Date(entry.created_at).toISOString().slice(0, 10)
+  const filename = `memymemo_${dateStr}.png`
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+  if (!blob) { console.error('[cardExport] canvas.toBlob returned null'); return null }
+  return { blob, filename }
+}
+
 /**
- * Save card as PNG.
- * - Mobile (Web Share API with file support): opens native share sheet
- *   so the user can save to Photos / Gallery.
- * - Desktop (or share unsupported): triggers <a download> as fallback.
+ * Download card as PNG file — works on both desktop and mobile.
+ * Always saves via <a download> (not share sheet).
  */
 export async function downloadCardPng(
   entry: Entry,
   templateId: number,
   photo?: HTMLImageElement | null
 ): Promise<void> {
-  const resolvedPhoto = photo !== undefined ? photo : await loadEntryPhoto(entry)
-  const canvas = document.createElement('canvas')
-  await drawCardWithPhoto(canvas, entry, templateId, SIZE, resolvedPhoto)
+  const result = await renderBlob(entry, templateId, photo)
+  if (!result) return
+  triggerDownload(result.blob, result.filename)
+}
 
-  const dateStr = new Date(entry.created_at).toISOString().slice(0, 10)
-  const filename = `memymemo_${dateStr}.png`
-
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, 'image/png')
-  )
-  if (!blob) { console.error('[cardExport] toBlob returned null'); return }
-
-  // Mobile: Web Share API with file sharing
-  if (canShareFiles()) {
-    const file = new File([blob], filename, { type: 'image/png' })
-    try {
-      await navigator.share({ files: [file], title: 'memymemo' })
-      return
-    } catch (e) {
-      // AbortError = user cancelled — no fallback needed
-      if (e instanceof Error && e.name === 'AbortError') return
-      // Other error: fall through to download
-      console.warn('[cardExport] share failed, falling back to download:', e)
-    }
+/**
+ * Share card via Web Share API (iOS / Android native share sheet).
+ * Returns 'unsupported' on desktop so the caller can show a toast.
+ */
+export async function shareCardInstagram(
+  entry: Entry,
+  templateId: number,
+  photo?: HTMLImageElement | null
+): Promise<'shared' | 'cancelled' | 'unsupported' | 'error'> {
+  if (!canShareFiles()) return 'unsupported'
+  const result = await renderBlob(entry, templateId, photo)
+  if (!result) return 'error'
+  const file = new File([result.blob], result.filename, { type: 'image/png' })
+  try {
+    await navigator.share({ files: [file], title: 'memymemo' })
+    return 'shared'
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') return 'cancelled'
+    console.warn('[cardExport] share() failed:', e)
+    // Fallback: trigger download so the user isn't left with nothing
+    triggerDownload(result.blob, result.filename)
+    return 'error'
   }
-
-  // Desktop fallback
-  triggerDownload(blob, filename)
 }

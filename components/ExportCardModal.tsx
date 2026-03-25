@@ -8,6 +8,7 @@ import {
   generateAllThumbnails,
   drawCardWithPhoto,
   downloadCardPng,
+  shareCardInstagram,
   canShareFiles,
 } from '@/lib/cardExport'
 
@@ -110,6 +111,7 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
   const isMobile = mounted && canShareFiles()
 
   // Store preloaded photo so we don't re-fetch on every render
@@ -184,6 +186,17 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
       console.error('[ExportCardModal] download error:', e)
     } finally {
       setIsDownloading(false)
+    }
+  }, [entry, selectedIdx])
+
+  const handleShare = useCallback(async () => {
+    setIsSharing(true)
+    try {
+      await shareCardInstagram(entry, selectedIdx + 1, photoRef.current)
+    } catch (e) {
+      console.error('[ExportCardModal] share error:', e)
+    } finally {
+      setIsSharing(false)
     }
   }, [entry, selectedIdx])
 
@@ -274,28 +287,43 @@ export default function ExportCardModal({ entry, onClose }: ExportCardModalProps
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-1">
+          <div className="flex flex-wrap items-center justify-end gap-2.5 pt-1">
             <button
               onClick={onClose}
               className="px-4 py-2.5 text-[13px] text-[#5b4f85] hover:bg-[#ede9ff] rounded-lg transition-colors"
             >
               닫기
             </button>
+
+            {/* Instagram share — mobile only */}
+            {isMobile && (
+              <button
+                onClick={handleShare}
+                disabled={isSharing || isDownloading || thumbsLoading}
+                className="px-5 py-2.5 text-[13px] font-medium bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white rounded-xl transition-opacity disabled:opacity-50 flex items-center gap-2"
+              >
+                {isSharing ? (
+                  <><Spinner size={15} color="#fff" />공유 중…</>
+                ) : (
+                  <>📤 인스타그램에 공유</>
+                )}
+              </button>
+            )}
+
+            {/* Download — always shown */}
             <button
               onClick={handleDownload}
-              disabled={isDownloading || thumbsLoading}
-              className="px-6 py-2.5 text-[13px] font-medium bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+              disabled={isDownloading || isSharing || thumbsLoading}
+              className="px-5 py-2.5 text-[13px] font-medium bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {isDownloading ? (
-                <><Spinner size={16} color="#fff" />{isMobile ? '저장 중…' : '다운로드 중…'}</>
-              ) : isMobile ? (
-                <>📸 사진 앨범에 저장</>
+                <><Spinner size={15} color="#fff" />저장 중…</>
               ) : (
                 <>
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  PNG 다운로드 (1080×1080)
+                  {isMobile ? '📸 사진 앨범에 저장' : 'PNG 다운로드 (1080×1080)'}
                 </>
               )}
             </button>
