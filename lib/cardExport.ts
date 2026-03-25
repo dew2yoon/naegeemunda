@@ -12,64 +12,30 @@ export function htmlToPlainText(html: string): string {
   return (div.textContent ?? div.innerText ?? '').trim()
 }
 
-/** Add cache-bust param so browser doesn't serve a non-CORS-headered cached response. */
-function bustCache(url: string): string {
-  const sep = url.includes('?') ? '&' : '?'
-  return `${url}${sep}t=${Date.now()}`
-}
-
 /**
- * Fetch remote image as a base64 data URL.
- * IMPORTANT: credentials must be 'omit' for public Supabase Storage.
- * Supabase replies with Access-Control-Allow-Origin: * which is
- * incompatible with credentials: 'include' — the browser rejects it.
+ * Convert a Supabase Storage URL to a same-origin proxy URL.
+ * The proxy fetches server-side, so the browser sees it as same-origin
+ * → canvas is never tainted, no CORS headers needed from Supabase.
  */
-async function fetchAsDataUrl(url: string): Promise<string> {
-  const res = await fetch(bustCache(url), { mode: 'cors', credentials: 'omit' })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const blob = await res.blob()
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(new Error('FileReader failed'))
-    reader.readAsDataURL(blob)
-  })
-}
-
-function loadImgElement(src: string, useCors: boolean): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    if (useCors) img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error(`Image load failed: ${src.slice(0, 60)}`))
-    img.src = src
-  })
+function proxyUrl(originalUrl: string): string {
+  return `/api/image-proxy?url=${encodeURIComponent(originalUrl)}`
 }
 
 /**
- * Load a remote image for canvas drawing.
- * 1. fetch (credentials:omit) → blob → data URL  → no canvas taint
- * 2. fallback: direct load + crossOrigin=anonymous + cache-bust
+ * Load an image for canvas drawing via the same-origin proxy.
+ * Because the response comes from /api/image-proxy (same origin),
+ * ctx.drawImage() will never trigger a canvas security error.
  */
 export async function loadImage(url: string): Promise<HTMLImageElement | null> {
-  // Strategy 1: fetch → data URL (avoids canvas CORS taint)
+  const src = proxyUrl(url)
   try {
-    const dataUrl = await fetchAsDataUrl(url)
-    console.debug('[cardExport] photo→dataURL ok, bytes:', dataUrl.length)
-    const img = await loadImgElement(dataUrl, false)
-    console.debug('[cardExport] img decoded:', img.naturalWidth, 'x', img.naturalHeight)
+    const img = new Image()
+    img.src = src
+    await img.decode()
+    console.debug('[cardExport] img loaded via proxy:', img.naturalWidth, 'x', img.naturalHeight)
     return img
-  } catch (e1) {
-    console.warn('[cardExport] fetch→dataURL failed:', e1)
-  }
-
-  // Strategy 2: direct crossOrigin with cache-bust
-  try {
-    const img = await loadImgElement(bustCache(url), true)
-    console.debug('[cardExport] direct load ok:', img.naturalWidth, 'x', img.naturalHeight)
-    return img
-  } catch (e2) {
-    console.error('[cardExport] photo load failed:', e2, '\nurl:', url)
+  } catch (e) {
+    console.error('[cardExport] proxy load failed:', e, '\noriginal url:', url)
     return null
   }
 }
